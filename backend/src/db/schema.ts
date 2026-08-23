@@ -45,17 +45,46 @@ export const decisions = pgTable('decisions', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+// export const characters = pgTable('characters', {
+//   id: uuid('id').primaryKey().defaultRandom(),
+//   decisionId: uuid('decision_id')
+//     .notNull()
+//     .references(() => decisions.id),
+//   name: varchar('name').notNull(),
+//   role: varchar('role').notNull(),
+//   message: text('message').notNull(),
+//   orderIndex: integer('order_index').notNull(),
+//   createdAt: timestamp('created_at').notNull().defaultNow(),
+// });
+
+
+//the previous one if the same character appearing more than once in the same mission it will stored as duplication 
+//rather than that we will split the fixed data about the characters and the message that will change in each step 
+
 export const characters = pgTable('characters', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name').notNull(),
+  role: varchar('role').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+
+export const stepCharacters = pgTable('step_characters', {
   id: uuid('id').primaryKey().defaultRandom(),
   decisionId: uuid('decision_id')
     .notNull()
     .references(() => decisions.id),
-  name: varchar('name').notNull(),
-  role: varchar('role').notNull(),
+  characterId: uuid('character_id')
+    .notNull()
+    .references(() => characters.id),
   message: text('message').notNull(),
   orderIndex: integer('order_index').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+
+
+
 
 export const choices = pgTable('choices', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -66,6 +95,9 @@ export const choices = pgTable('choices', {
   labelText: varchar('label_text').notNull(),
   metricDeltas: json('metric_deltas').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  //this will not appeaing immediately after the user choose a choice but we need to save them cause in the mission report they appeared 
+  outcomeLabel: varchar('outcome_label'),
+explanationText: text('explanation_text'),
 });
 
 export const playthroughs = pgTable('playthroughs', {
