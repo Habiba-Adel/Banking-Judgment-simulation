@@ -1,5 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { asc, eq } from 'drizzle-orm';
+import { Inject, Injectable, NotFoundException,BadRequestException, ConflictException } from '@nestjs/common';
+import { asc, eq, and } from 'drizzle-orm';
 import { DRIZZLE } from '../db/db.module';
 import type { DrizzleDb } from '../db/db.module';
 import { 
@@ -288,7 +288,7 @@ export class AttemptsRepository {
     answeredIds.push(decisionId);
     const isMissionComplete = missionDecisions.every((d) => answeredIds.includes(d.id));
 
-    let nextStepId = null;
+    let nextStepId: string | null = null;
     if (!isMissionComplete) {
       const nextDecision = missionDecisions.find((d) => !answeredIds.includes(d.id));
       nextStepId = nextDecision ? nextDecision.id : null;
