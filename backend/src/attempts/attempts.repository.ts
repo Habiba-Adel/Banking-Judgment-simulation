@@ -37,7 +37,7 @@ export class AttemptsRepository {
     const pastResponses = await this.db
       .select({
         decisionId: decisionResponses.decisionId,
-        //metricDeltas: decisionResponses.metricDeltas, 
+        metricDeltas: decisionResponses.snapshotMetricDeltas, 
       })
       .from(decisionResponses)
       .where(eq(decisionResponses.attemptId, attemptId));
@@ -282,7 +282,7 @@ export class AttemptsRepository {
       attemptId,
       decisionId,
       choiceId,
-      metricDeltas: currentChoice.metricDeltas,
+      snapshotMetricDeltas: currentChoice.metricDeltas,
     });
 
     answeredIds.push(decisionId);
@@ -296,7 +296,7 @@ export class AttemptsRepository {
 
     if (isMissionComplete) {
       const allAppliedDeltas = await this.db
-        .select({ metricDeltas: decisionResponses.metricDeltas })
+        .select({ metricDeltas: decisionResponses.snapshotMetricDeltas })
         .from(decisionResponses)
         .where(eq(decisionResponses.attemptId, attemptId));
 
