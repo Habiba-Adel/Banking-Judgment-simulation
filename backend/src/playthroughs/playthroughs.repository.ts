@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {  desc, eq, lt,and, asc } from 'drizzle-orm';
+import { and, asc, desc, eq, lt } from 'drizzle-orm';
 import { DRIZZLE } from '../db/db.module';
 import type { DrizzleDb } from '../db/db.module';
 import { missionAttempts, missions, playthroughs } from '../db/schema';
@@ -200,7 +200,7 @@ export class PlaythroughsRepository {
         eq(missionAttempts.missionId, missionId)
       )
     )
-    .orderBy(desc(missionAttempts.startedAt)) 
+    .orderBy(desc(missionAttempts.startedAt))
     .limit(1);
 
   if (lastAttempt && lastAttempt.status === 'in_progress') {

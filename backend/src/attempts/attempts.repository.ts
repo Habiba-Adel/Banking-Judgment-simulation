@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException,BadRequestException, ConflictException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { asc, eq, and } from 'drizzle-orm';
 import { DRIZZLE } from '../db/db.module';
 import type { DrizzleDb } from '../db/db.module';
@@ -332,8 +332,5 @@ export class AttemptsRepository {
       nextStepId,//and this to can use it for the getting next decision 
     };
   }
-
-
-
-
+  
 }
