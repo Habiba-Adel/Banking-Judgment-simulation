@@ -97,7 +97,7 @@ export const choices = pgTable('choices', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   //this will not appeaing immediately after the user choose a choice but we need to save them cause in the mission report they appeared 
   outcomeLabel: varchar('outcome_label'),
-explanationText: text('explanation_text'),
+  explanationText: text('explanation_text'),
 });
 
 export const playthroughs = pgTable('playthroughs', {
@@ -141,6 +141,7 @@ export const decisionResponses = pgTable(
     choiceId: uuid('choice_id')
       .notNull()
       .references(() => choices.id),
+      snapshotMetricDeltas: json('metric_deltas').notNull(),
     answeredAt: timestamp('answered_at').notNull().defaultNow(),
   },
   (table) => [unique().on(table.attemptId, table.decisionId)],
