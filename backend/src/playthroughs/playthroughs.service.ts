@@ -81,6 +81,17 @@ export class PlaythroughsService {
     }
     return updated;
   }
+
+  async getPlaythroughProgress(playthroughId: string) {
+    return this.playthroughsRepository.getPlaythroughProgress(playthroughId);
+  }
+
+  async startOrResumeAttempt(playthroughId: string, missionId: string) {
+    return this.playthroughsRepository.startOrResumeAttempt(playthroughId, missionId);
+  }
+
+
+
 }
 
 function diffMetrics(previous: MetricsMap | null, current: MetricsMap | null): MetricsMap {

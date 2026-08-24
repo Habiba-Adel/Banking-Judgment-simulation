@@ -25,9 +25,6 @@ export type DrizzleDb = NodePgDatabase<typeof schema>;
           user: config.get<string>('DB_USER'),
           password: config.get<string>('DB_PASSWORD'),
           database: config.get<string>('DB_NAME'),
-
-
-
           //this to can connect and communicate with neon wiithout any problems 
           ssl: { rejectUnauthorized: false },
 
