@@ -3,6 +3,7 @@ import { and, desc, eq, lt } from 'drizzle-orm';
 import { DRIZZLE } from '../db/db.module';
 import type { DrizzleDb } from '../db/db.module';
 import { missionAttempts, missions, playthroughs } from '../db/schema';
+import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class PlaythroughsRepository {
@@ -127,4 +128,109 @@ export class PlaythroughsRepository {
 
     return updated;
   }
+
+  async getPlaythroughProgress(playthroughId: string) {
+    
+    //now based on this playthrough id we need to get all the missions in this one and mark the ones are completed 
+    const allMissions = await this.db
+      .select({
+        missionId: missions.id,
+        orderIndex: missions.orderIndex,
+        title: missions.title,
+      })
+      .from(missions)
+      .orderBy(asc(missions.orderIndex));
+
+    
+      //and also get all attempts to know which missions is done 
+    const attempts = await this.db
+      .select({
+        id: missionAttempts.id,
+        missionId: missionAttempts.missionId,
+        status: missionAttempts.status,
+      })
+      .from(missionAttempts)
+      .where(eq(missionAttempts.playthroughId, playthroughId));
+
+    const progress = allMissions.map((mission) => {
+      //if there is aatleast one attempt for this mission that means it is done 
+      const attempt = attempts.find((a) => a.missionId === mission.missionId);
+      
+      return {
+        missionId: mission.missionId,
+        orderIndex: mission.orderIndex,
+        title: mission.title,
+        //this is to just check if the attempt is in continue or done 
+        completed: attempt?.status === 'completed', 
+        lastAttemptId: attempt?.id || null, 
+      };
+    });
+
+    return progress;
+  }
+
+
+  async startOrResumeAttempt(playthroughId: string, missionId: string) {
+  const [existingAttempt] = await this.db
+    .select()
+    .from(missionAttempts)
+    .where(
+      and(
+        eq(missionAttempts.playthroughId, playthroughId),
+        eq(missionAttempts.missionId, missionId),
+        eq(missionAttempts.status, 'in_progress')
+      )
+    )
+    .limit(1);
+
+  if (existingAttempt) {
+    return {
+      attemptId: existingAttempt.id,
+      status: existingAttempt.status,
+      resumed: true,
+    };
+  }
+
+  const [lastAttempt] = await this.db
+    .select()
+    .from(missionAttempts)
+    .where(
+      and(
+        eq(missionAttempts.playthroughId, playthroughId),
+        eq(missionAttempts.missionId, missionId)
+      )
+    )
+    .orderBy(desc(missionAttempts.createdAt)) 
+    .limit(1);
+
+  if (lastAttempt && lastAttempt.status === 'in_progress') {
+    return {
+      attemptId: lastAttempt.id,
+      status: lastAttempt.status,
+      resumed: true,
+    };
+  }
+
+  const [newAttempt] = await this.db
+    .insert(missionAttempts)
+    .values({
+      playthroughId,
+      missionId,
+      status: 'in_progress',
+    })
+    .returning({
+      id: missionAttempts.id,
+      status: missionAttempts.status,
+    });
+
+  return {
+    attemptId: newAttempt.id,
+    status: newAttempt.status,
+    resumed: false,
+  };
+}
+
+
+
+
 }
