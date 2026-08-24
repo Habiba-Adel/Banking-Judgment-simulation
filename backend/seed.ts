@@ -2,10 +2,12 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
-import { missions, decisions, characters, stepCharacters, choices } from './src/db/schema';
+import { missions, decisions, characters, stepCharacters, choices, users } from './src/db/schema';
 import { eq } from 'drizzle-orm';
 
 dotenv.config();
+
+const PLACEHOLDER_USER_ID = '00000000-0000-0000-0000-000000000001';
 
 const ZERO_DELTAS = {
   customerTrust: 0,
@@ -27,6 +29,18 @@ async function main() {
     ssl: { rejectUnauthorized: false },
   });
   const db = drizzle(pool);
+
+  // Stands in for the authenticated user until UsersModule/auth exists —
+  // PlaythroughsController reads this same id as PLACEHOLDER_USER_ID.
+  await db
+    .insert(users)
+    .values({
+      id: PLACEHOLDER_USER_ID,
+      email: 'placeholder@mindshift.dev',
+      passwordHash: 'placeholder',
+      displayName: 'Placeholder User',
+    })
+    .onConflictDoNothing();
 
   const characterCache = new Map<string, string>(); // name -> id
 

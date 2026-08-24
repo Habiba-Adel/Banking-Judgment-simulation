@@ -72,9 +72,9 @@ export class MissionsRepository {
               message: stepCharacters.message,
              orderIndex: stepCharacters.orderIndex,
             })
-            .from(characters)
+            .from(stepCharacters)
             .innerJoin(characters, eq(stepCharacters.characterId, characters.id))
-          .where(inArray(stepCharacters.decisionId, decisionIds))
+            .where(inArray(stepCharacters.decisionId, decisionIds))
             .orderBy(asc(stepCharacters.orderIndex));
 
     return { mission, decisionRows, choiceRows, characterRows };
