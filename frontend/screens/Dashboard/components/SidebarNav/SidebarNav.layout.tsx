@@ -8,27 +8,40 @@ const NAV_ITEMS = [
   { label: "Performance", iconSrc: "/performance.png", active: false },
 ] as const;
 
-export function SidebarNavLayout() {
+export function SidebarNavLayout({ collapsed = false }: { collapsed?: boolean }) {
   return (
-    <aside className="flex h-[1024px] w-[248px] shrink-0 flex-col justify-between border-r border-gray-100 bg-white p-[20px]">
-      <div>
-        <div className="mb-8 px-2">
-          <Image
-            src="/edushift-logo.png"
-            alt="EduShift AI — Simulate Decisions. Measure Progress."
-            width={160}
-            height={40}
-            priority
-            className="h-auto w-full max-w-[160px]"
-          />
+    <aside
+      className={`flex h-screen shrink-0 flex-col justify-between border-r border-gray-100 bg-white py-[20px] transition-all ${
+        collapsed ? "w-[80px] items-center px-2" : "w-[248px] px-[20px]"
+      }`}
+    >
+      <div className="flex w-full flex-col items-center">
+        <div className={`mb-8 flex justify-center ${collapsed ? "w-full" : "px-2"}`}>
+          {collapsed ? (
+            <div className="flex h-8 w-8 items-center justify-center text-2xl text-amber-500">
+              ✦
+            </div>
+          ) : (
+            <Image
+              src="/edushift-logo.png"
+              alt="EduShift AI"
+              width={160}
+              height={40}
+              priority
+              className="h-auto w-full max-w-[160px]"
+            />
+          )}
         </div>
 
-        <nav className="flex flex-col gap-1">
+        <nav className="flex w-full flex-col gap-2">
           {NAV_ITEMS.map(({ label, iconSrc, active }) => (
             <button
               key={label}
               type="button"
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+              title={collapsed ? label : undefined}
+              className={`flex items-center rounded-xl transition-colors ${
+                collapsed ? "justify-center p-3" : "gap-3 px-4 py-3"
+              } ${
                 active
                   ? "bg-indigo-50 text-indigo-600"
                   : "text-gray-600 hover:bg-gray-50"
@@ -36,12 +49,12 @@ export function SidebarNavLayout() {
             >
               <Image
                 src={iconSrc}
-                alt=""
-                width={38}
-                height={35}
-                className="h-[35px] w-[38px] object-contain"
+                alt={collapsed ? label : ""}
+                width={24}
+                height={24}
+                className="h-[24px] w-[24px] object-contain"
               />
-              {label}
+              {!collapsed && <span className="text-sm font-medium">{label}</span>}
             </button>
           ))}
         </nav>
@@ -49,10 +62,13 @@ export function SidebarNavLayout() {
 
       <button
         type="button"
-        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50"
+        title={collapsed ? "Logout" : undefined}
+        className={`flex items-center rounded-xl text-red-500 hover:bg-red-50 ${
+          collapsed ? "justify-center p-3" : "gap-3 px-4 py-3"
+        }`}
       >
         <LogOut className="h-5 w-5" />
-        Logout
+        {!collapsed && <span className="text-sm font-medium">Logout</span>}
       </button>
     </aside>
   );

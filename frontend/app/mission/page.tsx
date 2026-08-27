@@ -1,0 +1,1 @@
+import { Mission } from "@/screens/Mission"; export default function Page() { return <Mission />; }
