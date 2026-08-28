@@ -38,6 +38,7 @@ export function MetricCardLayout({
             className="object-contain"
             style={{ filter: "brightness(0) saturate(100%) invert(36%) sepia(97%) saturate(1036%) hue-rotate(214deg) brightness(101%) contrast(102%)" }}
           />
+
         </div>
         <div className="flex items-center gap-1 text-xs font-medium text-emerald-600">
           <TrendingUp className="h-3.5 w-3.5" />
