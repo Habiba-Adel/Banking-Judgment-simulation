@@ -4,12 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/", iconSrc: "/dashboard.png" },
   { label: "Instructions", href: "/instructions", iconSrc: "/instructions.png" },
-  { label: "Simulations", href: "/simulations", iconSrc: "/simulations.png" },
+  { label: "Situations", href: "/situations", iconSrc: "/simulations.png" },
   { label: "Performance", href: "/performance", iconSrc: "/performance.png" },
 ] as const;
 
@@ -117,7 +116,7 @@ export function SidebarNavLayout() {
                   isPinned ? "px-4" : "px-[5px]"
                 } ${
                   active
-                    ? "bg-indigo-50 text-indigo-600"
+                    ? "bg-[#5570F1] text-white"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
@@ -152,7 +151,8 @@ export function SidebarNavLayout() {
           isPinned ? "px-4" : "px-[5px]"
         }`}
       >
-        <LogOut className="h-5 w-5 shrink-0" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logout.svg" alt="" className="h-5 w-5 shrink-0" />
         <span
           className={`overflow-hidden opacity-0 transition-all duration-200 ${
             isPinned ? "max-w-[160px] opacity-100" : "max-w-0"
