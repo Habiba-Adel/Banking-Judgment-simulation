@@ -17,8 +17,10 @@ export function DashboardLayout({ data }: DashboardLayoutProps) {
     <div className="flex min-h-screen w-full bg-gray-50">
       <SidebarNav />
 
-      <div className="flex-1">
-        <TopBar />
+      <div className="min-w-0 flex-1">
+        <div className="flex justify-end px-8 pt-6">
+          <TopBar />
+        </div>
 
         <div className="grid grid-cols-1 gap-6 px-8 py-6 lg:grid-cols-[1fr_320px]">
           <div className="flex flex-col gap-6">
