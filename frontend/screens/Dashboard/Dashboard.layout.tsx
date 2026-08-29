@@ -1,5 +1,5 @@
-import { SidebarNav } from "@/components/SidebarNav";
-import { TopBar } from "@/components/TopBar";
+import { SidebarNav } from "../../components/SidebarNav";
+import { TopBar } from "../../components/TopBar";
 import { WelcomeCard } from "./components/WelcomeCard";
 import { MetricsGrid } from "./components/MetricsGrid";
 import { ProfileGauge } from "./components/ProfileGauge";
