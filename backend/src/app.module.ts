@@ -8,9 +8,10 @@ import { PlaythroughsModule } from './playthroughs/playthroughs.module';
 import { AttemptsService } from './attempts/attempts.service';
 import { AttemptsController } from './attempts/attempts.controller';
 import { AttemptsModule } from './attempts/attempts.module';
+import { CharactersModule } from './characters/characters.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DbModule, MissionsModule, PlaythroughsModule, AttemptsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DbModule, MissionsModule, PlaythroughsModule, AttemptsModule,CharactersModule],
   controllers: [AppController, AttemptsController],
   providers: [AppService, AttemptsService],
 })

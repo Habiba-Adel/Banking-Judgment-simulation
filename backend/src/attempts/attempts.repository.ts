@@ -44,25 +44,25 @@ export class AttemptsRepository {
 
     const answeredDecisionIds = pastResponses.map((r) => r.decisionId);
 
-    // // 3. نحسب الـ Running Metrics بجمع كل الديلتاس من الإجابات السابقة
-    // const runningMetrics = {
-    //   customerTrust: 0,
-    //   complianceSafety: 0,
-    //   dataProtection: 0,
-    //   decisionQuality: 0,
-    //   accountability: 0,
-    //   reputationRisk: 0,
-    //   responsibleBanking: 0,
-    // };
+    const runningMetrics = {
+      compliance: 0, 
+      reputationRisk: 0,
+      responsibleBanking: 0,
+    };
 
-    // for (const res of pastResponses) {
-    //   const deltas = (res.metricDeltas as Record<string, number>) || {};
-    //   for (const key in runningMetrics) {
-    //     runningMetrics[key as keyof typeof runningMetrics] += deltas[key] || 0;
-    //   }
-    // }
+    for (const res of pastResponses) {
+      const deltas = (res.metricDeltas as Record<string, number>) || {};
+      runningMetrics.compliance += deltas.complianceSafety || 0;
+      runningMetrics.reputationRisk += deltas.reputationRisk || 0;
+      runningMetrics.responsibleBanking += deltas.decisionQuality || 0; // حسب المسمى لديك
+    }
 
-    //and then get all the steps and get the first one didnot answered yet
+    const formattedMetrics = [
+      { id: "compliance", label: "Compliance", value: Math.max(0, Math.min(100, runningMetrics.compliance)), changeLabel: "" },
+      { id: "reputationRisk", label: "Reputation Risk", value: Math.max(0, Math.min(100, runningMetrics.reputationRisk)), changeLabel: "" },
+      { id: "responsibleBanking", label: "Responsible Banking", value: Math.max(0, Math.min(100, runningMetrics.responsibleBanking)), changeLabel: "" },
+    ];
+
     const allSteps = await this.db
       .select()
       .from(decisions)
@@ -100,11 +100,18 @@ export class AttemptsRepository {
 
     return {
       step: {
-        ...currentStep,
+        id: currentStep.id,
+        orderIndex: currentStep.orderIndex,
+        stageLabel: currentStep.stageLabel,
         characters: stepChars,
         choices: stepChoices,
       },
-      //runningMetrics,
+      pressure: {
+        level: currentStep.pressureLevel,
+        time: currentStep.pressureTime,
+        expectation: currentStep.pressureExpectation,
+      },
+      metrics: formattedMetrics,
       isComplete: false,
     };
   

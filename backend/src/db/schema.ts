@@ -12,6 +12,10 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export const statusEnum = pgEnum('status', ['in_progress', 'completed', 'abandoned']);
+export const pressureLevelEnum = pgEnum('pressure_level', ['Low', 'Moderate', 'Medium-High', 'High']);
+export const pressureTimeEnum = pgEnum('pressure_time', ['Low', 'Medium', 'High']);
+export const pressureExpectationEnum = pgEnum('pressure_expectation', ['Low', 'Medium', 'High']);
+
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -42,6 +46,12 @@ export const decisions = pgTable('decisions', {
   stageLabel: varchar('stage_label').notNull(),
   promptText: text('prompt_text').notNull(),
   contextText: text('context_text').notNull(),
+
+  pressureLevel: pressureLevelEnum('pressure_level').notNull().default('Low'),
+  pressureTime: pressureTimeEnum('pressure_time').notNull().default('Low'),
+  pressureExpectation: pressureExpectationEnum('pressure_expectation').notNull().default('Low'),
+
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -66,6 +76,7 @@ export const characters = pgTable('characters', {
   name: varchar('name').notNull(),
   role: varchar('role').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+ avatarUrl: varchar('avatar_url'),
 });
 
 

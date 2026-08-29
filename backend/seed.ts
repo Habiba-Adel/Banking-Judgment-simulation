@@ -2,8 +2,8 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
-import { missions, decisions, characters, stepCharacters, choices } from './src/db/schema';
-import { eq } from 'drizzle-orm';
+import { missions, decisions, characters, stepCharacters, choices, decisionResponses, missionAttempts } from './src/db/schema';
+import { eq, inArray } from 'drizzle-orm';
 
 dotenv.config();
 
@@ -28,9 +28,9 @@ async function main() {
   });
   const db = drizzle(pool);
 
-  const characterCache = new Map<string, string>(); // name -> id
+  const characterCache = new Map<string, string>(); 
 
-  async function getOrCreateCharacter(name: string, role: string): Promise<string> {
+  async function getOrCreateCharacter(name: string, role: string, avatarUrl?: string): Promise<string> {
     if (characterCache.has(name)) return characterCache.get(name)!;
 
     const existing = await db.select({ id: characters.id }).from(characters).where(eq(characters.name, name));
@@ -39,17 +39,26 @@ async function main() {
       return existing[0].id;
     }
 
-    const [created] = await db.insert(characters).values({ name, role }).returning();
+    const [created] = await db.insert(characters).values({ name, role,avatarUrl }).returning();
     characterCache.set(name, created.id);
     return created.id;
   }
 
-  async function clearMission(title: string) {
+async function clearMission(title: string) {
     const existing = await db.select({ id: missions.id }).from(missions).where(eq(missions.title, title));
     if (existing.length === 0) return;
 
     const missionId = existing[0].id;
     const missionSteps = await db.select({ id: decisions.id }).from(decisions).where(eq(decisions.missionId, missionId));
+    
+    const stepIds = missionSteps.map(step => step.id);
+    
+    if (stepIds.length > 0) {
+      await db.delete(decisionResponses).where(inArray(decisionResponses.decisionId, stepIds));
+    }
+    
+    await db.delete(missionAttempts).where(eq(missionAttempts.missionId, missionId));
+
     for (const step of missionSteps) {
       await db.delete(choices).where(eq(choices.decisionId, step.id));
       await db.delete(stepCharacters).where(eq(stepCharacters.decisionId, step.id));
@@ -75,10 +84,9 @@ async function main() {
       })
       .returning();
 
-    // 1. Register characters globally for this mission
     const charMap = new Map<string, string>();
     for (const cast of missionDef.cast) {
-      const id = await getOrCreateCharacter(cast.name, cast.role);
+      const id = await getOrCreateCharacter(cast.name, cast.role, cast.avatarUrl);
       charMap.set(cast.name, id);
     }
 
@@ -92,6 +100,9 @@ async function main() {
           stageLabel: stepDef.stageLabel,
           promptText: stepDef.promptText,
           contextText: missionDef.description,
+          pressureLevel: stepDef.pressure?.level || 'Low',
+    pressureTime: stepDef.pressure?.time || 'Low',
+    pressureExpectation: stepDef.pressure?.expectation || 'Low',
         })
         .returning();
 
@@ -136,14 +147,15 @@ async function main() {
     goalText: 'Resolve the request while protecting customer data and using approved channels.',
     // Cast is now just identities
     cast: [
-      { name: 'Farah Nabil', role: 'Digital Banking Operations Specialist' },
-      { name: 'Omar Shaker', role: 'Customer Experience Officer' },
-      { name: 'Dina Adel', role: 'Team Leader — Banking Operations' },
+      { name: 'Farah Nabil', role: 'Digital Banking Operations Specialist', avatarUrl: '/avatars/farah.png' },
+      { name: 'Omar Shaker', role: 'Customer Experience Officer', avatarUrl: '/avatars/omar.png'  },
+      { name: 'Dina Adel', role: 'Team Leader — Banking Operations' , avatarUrl: '/avatars/dina.png' },
     ],
     steps: [
       {
         orderIndex: 1,
         stageLabel: 'The request',
+        pressure: { level: 'Moderate', time: 'Low', expectation: 'Medium' },
         promptText: 'Farah asks: "Can you send me a screenshot of the customer profile? I will check it faster."',
         // Messages are now step-specific!
         characters: [
@@ -160,6 +172,7 @@ async function main() {
       {
         orderIndex: 2,
         stageLabel: 'Customer pressure',
+        pressure: { level: 'High', time: 'Low', expectation: 'Medium' },
         promptText: 'Omar says: "The customer is angry. If we delay, they will escalate."',
         characters: [
           { name: 'Omar Shaker', message: 'The customer is angry. If we delay, they will escalate.' }
@@ -173,6 +186,7 @@ async function main() {
       },
       {
         orderIndex: 3,
+        pressure: { level: 'Moderate', time: 'Low', expectation: 'Medium' },
         stageLabel: 'The workaround',
         promptText: 'Farah suggests: "Just hide the account number and send the screenshot. Everyone does it."',
         characters: [
@@ -188,6 +202,7 @@ async function main() {
       {
         orderIndex: 4,
         stageLabel: 'Authority pressure',
+        pressure: { level: 'Moderate', time: 'Low', expectation: 'Medium' },
         promptText: 'Dina says: "We need to close this today. Find a practical solution."',
         characters: [
           { name: 'Dina Adel', message: 'We need to close this today. Find a practical solution.' }
@@ -202,6 +217,7 @@ async function main() {
       {
         orderIndex: 5,
         stageLabel: 'Final resolution',
+        pressure: { level: 'Moderate', time: 'Low', expectation: 'Medium' },
         promptText: 'The customer is still waiting. You must close the case professionally.',
         characters: [
           { name: 'Dina Adel', message: 'The customer is waiting. Close this case now.' }
@@ -229,9 +245,9 @@ async function main() {
     managerName: 'Salma El-Hadidi',
     goalText: 'Refuse unauthorised access while staying professional and helpful.',
     cast: [
-      { name: 'Dina Adel', role: 'Team Leader — Banking Operations' },
-      { name: 'Omar Shaker', role: 'Customer Experience Officer' },
-      { name: 'Salma El-Hadidi', role: 'Compliance Officer' },
+      { name: 'Dina Adel', role: 'Team Leader Banking Operations', avatarUrl: '/avatars/dina.png' },
+      { name: 'Omar Shaker', role: 'Customer Experience Officer', avatarUrl: '/avatars/omar.png' },
+      { name: 'Salma El-Hadidi', role: 'Compliance Officer', avatarUrl: '/avatars/salma.png' },
     ],
     steps: [
       {
@@ -306,6 +322,20 @@ async function main() {
 
   await seedMission(mission1);
   await seedMission(mission2);
+
+  const standaloneCast = [
+  { name: 'Ahmed Raouf', role: 'AML Monitoring Analyst', avatarUrl: '/avatars/ahmed.png' },
+  { name: 'Rana Ghaly', role: 'Corporate Communications Specialist', avatarUrl: '/avatars/rana.png' },
+  { name: 'Tarek Mansour', role: 'Relationship Manager SME Banking', avatarUrl: '/avatars/tarek.png' },
+  { name: 'Layla Selim', role: 'Sustainability / ESG Officer', avatarUrl: '/avatars/layla.png' },
+  { name: 'Mariam Hassan', role: 'Retail Banking Customer', avatarUrl: '/avatars/mariam.png' },
+  { name: 'Hany Fathy', role: 'SME Customer', avatarUrl: '/avatars/hany.png' },
+];
+
+for (const person of standaloneCast) {
+  await getOrCreateCharacter(person.name, person.role, person.avatarUrl);
+}
+console.log('✅ Standalone cast characters registered.');
 
   console.log('✅ All missions seeded successfully.');
   await pool.end();

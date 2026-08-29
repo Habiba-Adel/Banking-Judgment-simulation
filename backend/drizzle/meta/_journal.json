@@ -29,6 +29,20 @@
       "when": 1787571576065,
       "tag": "0003_parallel_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787855751569,
+      "tag": "0004_demonic_stryfe",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787943838237,
+      "tag": "0005_cooing_marvel_zombies",
+      "breakpoints": true
     }
   ]
 }
