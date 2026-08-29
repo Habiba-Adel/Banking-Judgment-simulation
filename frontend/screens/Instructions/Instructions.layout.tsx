@@ -112,7 +112,8 @@ export function InstructionsLayout({
               {behaviorMetrics.map((metric) => (
                 <div
                   key={metric.key}
-                  className="flex flex-col gap-3 rounded-2xl bg-white p-[10px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
+                  // Changed p-[10px] to py-[10px] px-[20px] to add the requested left/right padding
+                  className="flex flex-col gap-3 rounded-2xl bg-white py-[10px] px-[20px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-tint">
                     <Image
