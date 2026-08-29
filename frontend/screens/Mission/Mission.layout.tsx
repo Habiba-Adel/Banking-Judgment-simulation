@@ -4,7 +4,7 @@ import { SituationPressureCard } from "./components/SituationPressureCard";
 import { StepStepper } from "./components/StepStepper";
 import { ContactsList } from "./components/ContactsList";
 import { ChatPanel } from "./components/ChatPanel";
-import { SidebarNav } from "@/screens/Dashboard/components/SidebarNav"; 
+import { SidebarNav } from "../../components/SidebarNav"; 
 import type { MissionData } from "./types";
 import { ChevronLeft, Languages } from "lucide-react";
 import Image from "next/image";
@@ -13,9 +13,10 @@ export interface MissionLayoutProps {
   data: MissionData;
   onSelectChoice: (choiceId: string) => void;
   onSend: () => void;
+  onSelectContact: (characterId: string) => void;
 }
 
-export function MissionLayout({ data, onSelectChoice, onSend }: MissionLayoutProps) {
+export function MissionLayout({ data, onSelectChoice, onSend ,onSelectContact }: MissionLayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden bg-primary-tint">
       <SidebarNav collapsed={true} />
@@ -54,7 +55,11 @@ export function MissionLayout({ data, onSelectChoice, onSend }: MissionLayoutPro
         <StepStepper steps={data.steps} />
 
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[451px_1fr] items-start">
-          <ContactsList contacts={data.contacts} activeCharacterId={data.activeCharacter.id} />
+<ContactsList 
+  contacts={data.contacts} 
+  activeCharacterId={data.activeCharacter?.id ?? null} 
+  onSelectContact={onSelectContact}
+/>
           <ChatPanel
             character={data.activeCharacter}
             messages={data.messages}
