@@ -4,7 +4,7 @@ export interface MissionMetric {
   id: MissionMetricKey;
   label: string;
   value: number;
-  changeLabel: string; // e.g. "+2%"
+  changeLabel: string; 
 }
 
 export interface SituationPressure {
@@ -62,7 +62,7 @@ export interface MissionData {
   metrics: MissionMetric[];
   steps: StepSummary[];
   contacts: ContactPreview[];
-  activeCharacter: Character;
+  activeCharacter: Character | null;
   messages: ChatMessage[];
   choices: Choice[];
   selectedChoiceId: string | null;
