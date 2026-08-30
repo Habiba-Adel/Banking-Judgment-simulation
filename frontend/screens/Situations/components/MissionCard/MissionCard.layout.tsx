@@ -19,7 +19,7 @@ export function MissionCardLayout({
   const badge = STATUS_BADGE[status];
 
   return (
-    <div className="flex w-[220px] shrink-0 flex-col rounded-xl border border-gray-100 bg-[#FBFBFB] p-3 shadow-sm">
+    <div className="flex w-[380px] shrink-0 flex-col rounded-xl border border-gray-100 bg-[#FBFBFB] p-3 shadow-sm">
       <div className="relative h-[130px] w-full shrink-0 overflow-hidden rounded-lg">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={thumbnailSrc} alt={title} className="h-full w-full object-cover" />
