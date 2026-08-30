@@ -1,5 +1,8 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/TopBar";
-import { PrimaryBackButton } from "@/screens/Mission_report/components/PrimaryBackButton";
+import { PrimaryBackButton } from "@/components/PrimaryBackButton";
 import { TitleCard } from "@/screens/Mission_report/components/TitleCard";
 import { MissionScoreGauge } from "@/screens/Mission_report/components/MissionScoreGauge";
 import { ImprovedCard } from "@/screens/Mission_report/components/ImprovedCard";
@@ -9,6 +12,8 @@ import { DecisionMetrics } from "@/screens/Mission_report/components/DecisionMet
 import { LowerButtons } from "@/screens/Mission_report/components/LowerButtons";
 
 export default function MissionReportPage() {
+  const router = useRouter();
+
   return (
     <div className="min-w-0 flex-1 px-8 pt-[29px] pb-8">
       <div className="flex items-center justify-between">
@@ -153,7 +158,7 @@ export default function MissionReportPage() {
       </div>
 
       <div className="mt-6">
-        <LowerButtons />
+        <LowerButtons onNext={() => router.push("/playthrough-history")} />
       </div>
     </div>
   );
