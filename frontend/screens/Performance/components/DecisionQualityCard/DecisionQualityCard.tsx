@@ -29,20 +29,21 @@ export function DecisionQualityCard({ totalDecisions, slices }: DecisionQualityC
       </h3>
 
       <div className="mt-3 flex flex-1 flex-col items-center justify-between">
-        <div className="relative h-[220px] w-[220px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={slices}
-                dataKey="value"
-                innerRadius={70}
-                outerRadius={110}
-                paddingAngle={2}
-                startAngle={90}
-                endAngle={-270}
-                labelLine={false}
-                label={renderCustomizedLabel}
-              >
+        <div className="relative h-[218px] w-[218px]">
+  <ResponsiveContainer width="100%" height="100%">
+    <PieChart>
+      <Pie
+        data={slices}
+        dataKey="value"
+        innerRadius={68}
+        outerRadius={109} 
+        paddingAngle={2}
+        cornerRadius={4}  
+        startAngle={90}
+        endAngle={-270}
+        labelLine={false}
+        label={renderCustomizedLabel}
+      >
                 {slices.map((slice) => (
                   <Cell key={slice.label} fill={slice.color} stroke="none" />
                 ))}

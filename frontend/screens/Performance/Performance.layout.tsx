@@ -24,12 +24,10 @@ export function PerformanceLayout({
       <TopBar />
 
       <div className="flex w-full flex-col px-8 py-6">
-        {/* Title only — small gap under it */}
         <h1 className="mb-6 text-[24px] font-medium leading-[32px] text-[#1C1C1C]">
           Performance Overview
         </h1>
 
-        {/* Card rows only — large gap between rows */}
         <div className="flex w-full flex-col gap-y-12">
           {/* Row 1 */}
           <div className="flex w-full gap-x-6">

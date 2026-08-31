@@ -34,9 +34,9 @@ const MOCK_DATA: PerformanceData = {
   decisionQuality: {
     totalDecisions: 35,
     slices: [
-      { label: "Correct", value: 42, color: "#5871EC" },
-      { label: "Partially Correct", value: 33, color: "#A5B4FC" },
-      { label: "Incorrect", value: 25, color: "#F59E0B" },
+     { label: "Correct", value: 42, color: "rgba(88, 113, 236, 1)" },
+{ label: "Partially Correct", value: 33, color: "rgba(88, 113, 236, 0.6)" },
+{ label: "Incorrect", value: 25, color: "rgba(251, 178, 93, 1)" },
     ],
   },
   behaviorPatterns: [
