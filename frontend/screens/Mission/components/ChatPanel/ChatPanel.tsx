@@ -37,12 +37,26 @@ export function ChatPanel({
 }: ChatPanelProps) {
   if (!character) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-sm p-10 h-full min-h-[500px]">
-        <div className="relative h-44 w-44 mb-4 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
-          <Image src="/empty.png" alt="Messages" width={120} height={120} className="object-contain" />
+      // Removed lg:w-[821px], changed to w-full to stretch dynamically
+      <div className="flex h-[477px] w-full flex-col items-center justify-center gap-[12px] rounded-[12px] border border-gray-100 bg-white">
+        <div className="relative flex h-[318px] w-[318px] flex-shrink-0 items-center justify-center rounded-full border border-[#9DA4AE] bg-[#F3F4F6]">
+          <Image 
+            src="/empty.png" 
+            alt="No Messages" 
+            width={203} 
+            height={214} 
+            className="object-contain" 
+          />
         </div>
-        <h3 className="text-lg font-bold text-gray-900 mb-2">Messages</h3>
-        <p className="text-sm text-gray-500">Click on a contact to view messages.</p>
+        
+        <div className="flex h-[60px] w-[318px] flex-col items-center justify-center gap-[8px]">
+          <h3 className="h-[28px] text-[18px] font-medium leading-[28px] text-[#1C1C1C]">
+            Messages
+          </h3>
+          <p className="h-[24px] text-[16px] font-normal leading-[24px] text-[#4D5761]">
+            Click on a contact to view messages.
+          </p>
+        </div>
       </div>
     );
   }
@@ -50,7 +64,8 @@ export function ChatPanel({
   const selectedChoiceText = choices.find((c) => c.id === selectedChoiceId)?.labelText ?? "";
 
   return (
-    <div className="flex flex-col rounded-2xl border border-gray-100 bg-white shadow-sm h-full min-h-[500px]">
+    // Removed lg:w-[821px], changed to w-full to stretch dynamically
+    <div className="flex h-[477px] w-full flex-col rounded-[12px] border border-gray-100 bg-white">
       <div className="flex items-center gap-3 border-b border-gray-100 p-4">
         <CharacterAvatar name={character.name} avatarSrc={character.avatarSrc} />
         <div>
@@ -59,7 +74,7 @@ export function ChatPanel({
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 p-4 overflow-y-auto">
+      <div className="flex-1 space-y-3 overflow-y-auto p-4">
         <div className="text-center text-xs text-gray-400">{dateLabel}</div>
         {messages.map((message) => (
           <div key={message.id} className="max-w-md">
@@ -82,7 +97,7 @@ export function ChatPanel({
                   type="button"
                   onClick={() => onSelectChoice(choice.id)}
                   className={[
-                    "block w-full rounded-lg px-3 py-2 text-left text-sm",
+                    "block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
                     isSelected ? "bg-primary-tint font-medium text-primary" : "text-gray-700 hover:bg-gray-50",
                   ].join(" ")}
                 >

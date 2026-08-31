@@ -24,8 +24,8 @@ function ContactAvatar({ name, avatarSrc }: { name: string; avatarSrc?: string }
 
 export function ContactsList({ contacts, activeCharacterId, onSelectContact }: ContactsListProps) {
   return (
-    <div className="flex flex-col rounded-2xl border border-gray-100 bg-white py-[22px] px-[20px] shadow-sm w-full lg:w-[451px] h-[813px] overflow-y-auto">
-      <h3 className="flex items-center w-full lg:w-[411px] h-[30px] mb-[15px] text-lg font-bold text-gray-900">
+    <div className="flex h-[477px] w-full lg:w-[451px] flex-col rounded-2xl border border-gray-100 bg-white px-[20px] py-[22px] overflow-y-auto">
+      <h3 className="mb-[15px] flex h-[30px] w-full items-center text-lg font-bold text-gray-900 lg:w-[411px]">
         Contacts
       </h3>
       <div className="flex flex-col gap-[10px]">
@@ -36,12 +36,12 @@ export function ContactsList({ contacts, activeCharacterId, onSelectContact }: C
               key={contact.characterId}
               onClick={() => onSelectContact(contact.characterId)}
               className={[
-                "flex items-start gap-[10px] w-full lg:w-[411px] h-[100px] rounded-lg border-b border-gray-100 py-[12px] px-[24px] flex-shrink-0 cursor-pointer transition-colors",
+                "flex h-[100px] w-full flex-shrink-0 cursor-pointer items-start gap-[10px] rounded-lg border-b border-gray-100 px-[24px] py-[12px] transition-colors lg:w-[411px]",
                 isActive ? "bg-primary-tint" : "hover:bg-gray-50",
               ].join(" ")}
             >
               <ContactAvatar name={contact.name} avatarSrc={contact.avatarSrc} />
-              <div className="min-w-0 flex-1 flex flex-col justify-between h-full">
+              <div className="flex h-full min-w-0 flex-1 flex-col justify-between">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-gray-900">{contact.name}</span>
                   {contact.unread && (
@@ -50,9 +50,9 @@ export function ContactsList({ contacts, activeCharacterId, onSelectContact }: C
                     </span>
                   )}
                 </div>
-                <div className="flex items-end justify-between gap-2 mt-1">
-                  <p className="text-sm text-gray-500 line-clamp-2">{contact.lastMessage}</p>
-                  <span className="flex-shrink-0 whitespace-nowrap text-xs text-gray-400 mb-1">
+                <div className="mt-1 flex items-end justify-between gap-2">
+                  <p className="line-clamp-2 text-sm text-gray-500">{contact.lastMessage}</p>
+                  <span className="mb-1 flex-shrink-0 whitespace-nowrap text-xs text-gray-400">
                     {contact.lastMessageTime}
                   </span>
                 </div>

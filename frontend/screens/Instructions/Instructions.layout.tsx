@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { SidebarNav } from "@/components/SidebarNav";
+//import { SidebarNav } from "@/components/SidebarNav";
 import { TopBar } from "@/components/TopBar";
 import type { CastMember, JourneyStep, BehaviorMetricInfo } from "./types";
 
@@ -42,7 +42,6 @@ export function InstructionsLayout({
 }: InstructionsLayoutProps) {
   return (
     <div className="flex min-h-screen w-full bg-[#FBFBFB]">
-      <SidebarNav />
 
       <div className="flex-1">
         <TopBar showNotifications={false} />
