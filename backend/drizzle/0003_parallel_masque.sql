@@ -1,0 +1,1 @@
+ALTER TABLE "decision_responses" ADD COLUMN "metric_deltas" json NOT NULL;

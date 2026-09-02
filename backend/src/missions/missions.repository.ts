@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { asc, eq, inArray } from 'drizzle-orm';
 import { DRIZZLE } from '../db/db.module';
 import type { DrizzleDb } from '../db/db.module';
-import { characters, choices, decisions, missions } from '../db/schema';
+import { characters, choices, decisions, missions , stepCharacters } from '../db/schema';
 
 @Injectable()
 export class MissionsRepository {
@@ -66,15 +66,16 @@ export class MissionsRepository {
         : await this.db
             .select({
               id: characters.id,
-              decisionId: characters.decisionId,
+              decisionId: stepCharacters.decisionId,
               name: characters.name,
               role: characters.role,
-              message: characters.message,
-              orderIndex: characters.orderIndex,
+              message: stepCharacters.message,
+             orderIndex: stepCharacters.orderIndex,
             })
-            .from(characters)
-            .where(inArray(characters.decisionId, decisionIds))
-            .orderBy(asc(characters.orderIndex));
+            .from(stepCharacters)
+            .innerJoin(characters, eq(stepCharacters.characterId, characters.id))
+            .where(inArray(stepCharacters.decisionId, decisionIds))
+            .orderBy(asc(stepCharacters.orderIndex));
 
     return { mission, decisionRows, choiceRows, characterRows };
   }
