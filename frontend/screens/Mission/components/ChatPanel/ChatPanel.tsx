@@ -24,6 +24,7 @@ export interface ChatPanelProps {
   dateLabel: string;
   onSelectChoice: (choiceId: string) => void;
   onSend: () => void;
+  submitError?: string | null;
 }
 
 export function ChatPanel({
@@ -34,6 +35,7 @@ export function ChatPanel({
   dateLabel,
   onSelectChoice,
   onSend,
+  submitError,
 }: ChatPanelProps) {
   if (!character) {
     return (
@@ -87,6 +89,15 @@ export function ChatPanel({
       </div>
 
       <div className="border-t border-gray-100 p-4">
+        {submitError && (
+          <div
+            data-testid="submit-error"
+            className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
+          >
+            {submitError}
+          </div>
+        )}
+
         {choices.length > 0 && (
           <div className="mb-3 space-y-1">
             {choices.map((choice) => {
@@ -95,6 +106,8 @@ export function ChatPanel({
                 <button
                   key={choice.id}
                   type="button"
+                  data-testid="choice-button"
+                  data-choice-id={choice.id}
                   onClick={() => onSelectChoice(choice.id)}
                   className={[
                     "block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors",
@@ -119,6 +132,7 @@ export function ChatPanel({
             />
             <button
               type="button"
+              data-testid="send-button"
               onClick={onSend}
               disabled={selectedChoiceId === null}
               className={[

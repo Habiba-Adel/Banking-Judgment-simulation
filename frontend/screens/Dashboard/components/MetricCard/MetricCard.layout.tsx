@@ -3,12 +3,12 @@ import { TrendingUp } from "lucide-react";
 import type { MetricIconKey } from "../../types";
 
 const ICON_SRCS: Record<MetricIconKey, string> = {
-  compliance: "/icon-compliance.png",
-  reputationRisk: "/icon-reputation-risk.png",
-  customerTrust: "/icon-customer-trust.png",
-  dataProtection: "/icon-data-protection.png",
-  accountability: "/icon-accountability.png",
-  decisionQuality: "/icon-decision-quality.png",
+  complianceSafety: "/compliance safety.svg",
+  reputationRisk: "/reputation risk.svg",
+  customerTrust: "/customer trust.svg",
+  dataProtection: "/dataprotection.svg",
+  accountability: "/accoutability.png",
+  decisionQuality: "/decision quality.svg",
 };
 
 export interface MetricCardLayoutProps {

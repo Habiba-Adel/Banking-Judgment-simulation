@@ -15,6 +15,7 @@ export function StatusFilterTabsLayout({ active, onChange }: StatusFilterTabsPro
         <button
           key={filter.id}
           type="button"
+          data-testid={`status-filter-${filter.id}`}
           onClick={() => onChange(filter.id)}
           className={`rounded-lg border border-[#5570F1] px-4 py-2 text-lg leading-7 font-normal tracking-normal align-middle transition-colors ${
             active === filter.id

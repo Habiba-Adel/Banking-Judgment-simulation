@@ -25,9 +25,24 @@ export type DrizzleDb = NodePgDatabase<typeof schema>;
           user: config.get<string>('DB_USER'),
           password: config.get<string>('DB_PASSWORD'),
           database: config.get<string>('DB_NAME'),
-          //this to can connect and communicate with neon wiithout any problems 
+          //this to can connect and communicate with neon wiithout any problems
           ssl: { rejectUnauthorized: false },
+          // Neon kills idle connections server-side after its own timeout —
+          // closing our end first (shorter than that) avoids the pool handing
+          // out a connection Neon has already dropped, which otherwise
+          // surfaces as "Connection terminated unexpectedly" on whatever
+          // request happens to grab it next (found 2026-09-01, live error).
+          idleTimeoutMillis: 10_000,
+          keepAlive: true,
+        });
 
+        // Without this listener, a connection Neon drops while idle in the
+        // pool emits an unhandled 'error' event on the Pool itself — Node
+        // treats that as fatal. Logging it here keeps the pool (and the
+        // server) alive; the pool transparently opens a fresh connection for
+        // the next query.
+        pool.on('error', (err) => {
+          logger.error('Idle database connection error (pool recovers automatically)', err);
         });
 
 

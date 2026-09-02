@@ -20,10 +20,10 @@ export function PerformanceLayout({
   onPeriodChange,
 }: PerformanceLayoutProps) {
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F9FAFB]">
+    <div data-testid="performance-root" className="flex-1 overflow-y-auto bg-[#F9FAFB]">
       <TopBar />
 
-      <div className="flex w-full flex-col px-8 py-6">
+      <div className="animate-fade-in-up flex w-full flex-col px-8 py-6">
         <h1 className="mb-6 text-[24px] font-medium leading-[32px] text-[#1C1C1C]">
           Performance Overview
         </h1>

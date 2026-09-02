@@ -34,6 +34,9 @@ export function ContactsList({ contacts, activeCharacterId, onSelectContact }: C
           return (
             <div
               key={contact.characterId}
+              data-testid="contact-item"
+              data-character-id={contact.characterId}
+              data-unread={contact.unread ? "true" : "false"}
               onClick={() => onSelectContact(contact.characterId)}
               className={[
                 "flex h-[100px] w-full flex-shrink-0 cursor-pointer items-start gap-[10px] rounded-lg border-b border-gray-100 px-[24px] py-[12px] transition-colors lg:w-[411px]",

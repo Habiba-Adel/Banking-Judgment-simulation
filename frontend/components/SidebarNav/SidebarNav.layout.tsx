@@ -112,6 +112,7 @@ export function SidebarNavLayout() {
               <Link
                 key={label}
                 href={href}
+                data-testid={`nav-${label.toLowerCase()}`}
                 className={`flex items-center gap-3 rounded-xl py-3 text-sm font-medium whitespace-nowrap transition-[padding,background-color,color] duration-200 ${
                   isPinned ? "px-4" : "px-[5px]"
                 } ${

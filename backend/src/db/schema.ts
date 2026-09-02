@@ -65,6 +65,7 @@ export const characters = pgTable('characters', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name').notNull(),
   role: varchar('role').notNull(),
+  avatarUrl: varchar('avatar_url'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

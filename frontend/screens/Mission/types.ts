@@ -8,7 +8,7 @@ export interface MissionMetric {
 }
 
 export interface SituationPressure {
-  level: "Low" | "Moderate" | "Medium-High" | "High";
+  level: "Low" | "Moderate" | "Medium-High" | "High" | "Critical";
   time: "Low" | "Medium" | "High";
   expectation: "Low" | "Medium" | "High";
 }

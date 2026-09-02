@@ -24,8 +24,8 @@ export function RecentScenariosCard({ scenarios }: RecentScenariosCardProps) {
         </button>
       </div>
 
-      <div className="w-full overflow-hidden px-5">
-        <table className="w-full border-collapse text-left">
+      <div className="w-full overflow-x-auto px-5">
+        <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
             <tr className="h-[52px] border-y border-[#E5E7EB]">
               {COLUMNS.map((col) => (

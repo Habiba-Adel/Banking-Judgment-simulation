@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { toFriendlyErrorMessage } from "@/lib/friendlyError";
 import { InstructionsLayout } from "./Instructions.layout";
-import { api } from "@/lib/api";
+import { fetchCharacters, startOrResumePlaythrough, resetPlaythrough } from "./api";
 import type { CastMember, JourneyStep, BehaviorMetricInfo } from "./types";
 
 // Static content — matches Figma exactly, doesn't come from the backend.
@@ -25,63 +28,73 @@ const BEHAVIOR_METRICS: BehaviorMetricInfo[] = [
 ];
 
 
-const STATIC_AVATARS: Record<string, string> = {
+// Fallback portraits for characters whose DB row has no avatarUrl yet.
+const AVATAR_FALLBACK: Record<string, string> = {
   "Farah Nabil": "/avatars/farah.png",
   "Omar Shaker": "/avatars/omar.png",
-  "Salma El-Hadidi": "/avatars/salma.png",
   "Dina Adel": "/avatars/dina.png",
-  "Ahmed Raouf": "/avatars/hany.png", 
+  "Salma El-Hadidi": "/avatars/salma.png",
 };
 
+// Overrides a DB avatarUrl that points at a file that doesn't exist yet.
+// Remove once a real ahmed.png asset is added and the DB row is fixed.
+const AVATAR_OVERRIDE: Record<string, string> = {
+  "Ahmed Raouf": "/avatars/hany.png",
+};
+
+const PLAYER: CastMember = { id: "you", name: "You: The Banker", role: "Simulation learner", isPlayer: true };
+
 export function Instructions() {
-  const [cast, setCast] = useState<CastMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [cast, setCast] = useState<CastMember[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadCast() {
-      try {
-        // GET /characters now returns every distinct character directly — no more
-        // looping through missions to collect them. Shows exactly what's in the DB,
-        // no cap applied, per the "no less and no more" requirement.
-        const rows = await api.getCharacters();
-        if (!cancelled) {
-          setCast(
-            rows.map((row) => ({
-              id: row.id,
-              name: row.name,
-              role: row.role,
-              avatarSrc: STATIC_AVATARS[row.name] ?? row.avatarUrl ?? undefined,
-            })),
-          );
-        }
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load cast");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    loadCast();
-    return () => {
-      cancelled = true;
-    };
+    fetchCharacters()
+      .then((characters) => {
+        setCast([
+          PLAYER,
+          ...characters.map((c) => ({
+            id: c.id,
+            name: c.name,
+            role: c.role,
+            avatarSrc: AVATAR_OVERRIDE[c.name] ?? c.avatarUrl ?? AVATAR_FALLBACK[c.name],
+          })),
+        ]);
+      })
+      .catch((err) => setError(toFriendlyErrorMessage(err, "Failed to load cast")));
   }, []);
 
-  const fullCast: CastMember[] = [
-    { id: "you", name: "You: The Banker", role: "Simulation learner", isPlayer: true },
-    ...cast,
-  ];
+  // Abandons the current in-progress playthrough (kept in history, not
+  // deleted) and starts a brand-new one — same "start over" action as
+  // Playthrough History's Restart Journey button.
+  async function handleConfirmStartNewSimulation() {
+    setShowRestartConfirm(false);
+    const current = await startOrResumePlaythrough();
+    await resetPlaythrough(current.id);
+    await startOrResumePlaythrough();
+    router.push("/situations");
+  }
 
   return (
-    <InstructionsLayout
-      journeySteps={JOURNEY_STEPS}
-      behaviorMetrics={BEHAVIOR_METRICS}
-      cast={fullCast}
-      loading={loading}
-      error={error}
-    />
+    <>
+      <InstructionsLayout
+        journeySteps={JOURNEY_STEPS}
+        behaviorMetrics={BEHAVIOR_METRICS}
+        cast={cast ?? [PLAYER]}
+        loading={!cast && !error}
+        error={error}
+        onStartNewSimulation={() => setShowRestartConfirm(true)}
+      />
+      <ConfirmDialog
+        open={showRestartConfirm}
+        title="Start a new simulation?"
+        message="Your current journey will be saved to history, and you'll start fresh from mission 1."
+        confirmLabel="Continue"
+        onConfirm={handleConfirmStartNewSimulation}
+        onCancel={() => setShowRestartConfirm(false)}
+      />
+    </>
   );
 }

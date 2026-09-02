@@ -9,20 +9,25 @@ function SortIcon() {
   );
 }
 
-const HEADERS = ["Attempt", "Date", "Score", "Accuracy", "Decision quality", "Improvement"];
+export function AttemptsOverviewTableLayout({
+  attempts,
+  title = "All attempts overview",
+  noun = "attempt",
+  numberColumnLabel = "Attempt",
+}: AttemptsOverviewTableProps) {
+  const headers = [numberColumnLabel, "Date", "Score", "Accuracy", "Decision quality", "Improvement"];
 
-export function AttemptsOverviewTableLayout({ attempts }: AttemptsOverviewTableProps) {
   return (
     <section className="rounded-xl border border-gray-100 bg-[#FBFBFB] p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl leading-7 font-bold text-gray-900">All attempts overview</h2>
+        <h2 className="text-xl leading-7 font-bold text-gray-900">{title}</h2>
       </div>
 
       <div className="mt-6 overflow-x-auto">
         <table className="w-full min-w-[560px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-gray-100">
-              {HEADERS.map((label) => (
+              {headers.map((label) => (
                 <th key={label} className="pb-3 pr-4 font-normal text-gray-500">
                   <span className="flex items-center gap-1.5">
                     {label}
@@ -38,7 +43,7 @@ export function AttemptsOverviewTableLayout({ attempts }: AttemptsOverviewTableP
               const isFirst = attemptNumber === 1;
               const pillColor = isFirst ? "#6C737F" : improved ? "#519C66" : "#D92D20";
               const pillLabel = isFirst
-                ? "First attempt"
+                ? `First ${noun}`
                 : improved
                   ? `+${improvement} improved`
                   : `${improvement} declined`;

@@ -3,9 +3,16 @@ import Image from "next/image";
 export interface WelcomeCardLayoutProps {
   userName: string;
   hasProgress: boolean;
+  onPrimaryAction: () => void;
+  onReadInstructions: () => void;
 }
 
-export function WelcomeCardLayout({ userName, hasProgress }: WelcomeCardLayoutProps) {
+export function WelcomeCardLayout({
+  userName,
+  hasProgress,
+  onPrimaryAction,
+  onReadInstructions,
+}: WelcomeCardLayoutProps) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-8">
       <p className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -21,6 +28,7 @@ export function WelcomeCardLayout({ userName, hasProgress }: WelcomeCardLayoutPr
       <div className="mt-6 flex flex-wrap gap-3">
         <button
           type="button"
+          onClick={onPrimaryAction}
           className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
         >
           {hasProgress ? "Continue Simulation" : "Start New Simulation"}
@@ -36,6 +44,7 @@ export function WelcomeCardLayout({ userName, hasProgress }: WelcomeCardLayoutPr
         </button>
         <button
           type="button"
+          onClick={onReadInstructions}
           className="rounded-xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
         >
           Read Instructions

@@ -2,12 +2,16 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
 import type { StatCardData } from "../../types";
 
-export function StatCard({ label, value, trendLabel, trendDirection, description }: StatCardData) {
+export function StatCard({ id, label, value, trendLabel, trendDirection, description }: StatCardData) {
   const TrendIcon = trendDirection === "up" ? TrendingUp : TrendingDown;
   const trendColor = trendDirection === "up" ? "text-[#1B8354]" : "text-[#F04438]";
 
   return (
-    <div className="flex h-[190px] w-full flex-col justify-between rounded-[16px] bg-white p-3 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
+    <div
+      data-testid={`stat-card-${id}`}
+      data-stat-value={value}
+      className="flex h-[190px] w-full flex-col justify-between rounded-[16px] bg-white p-3 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]"
+    >
       <div className="flex items-start justify-between">
         <span className="text-[16px] font-normal leading-[24px] text-[#1C1C1C]">
           {label}

@@ -5,7 +5,11 @@ const HEIGHT = 220;
 const PADDING_X = 32;
 const PADDING_Y = 24;
 
-export function ScoreProgressionChartLayout({ attempts }: ScoreProgressionChartProps) {
+export function ScoreProgressionChartLayout({
+  attempts,
+  subtitle = "Your score across attempts.",
+  pointPrefix = "Attempt",
+}: ScoreProgressionChartProps) {
   const plotWidth = WIDTH - PADDING_X * 2;
   const plotHeight = HEIGHT - PADDING_Y * 2;
 
@@ -24,7 +28,7 @@ export function ScoreProgressionChartLayout({ attempts }: ScoreProgressionChartP
   return (
     <section className="rounded-2xl border border-gray-100 bg-[#FBFBFB] p-6">
       <h2 className="text-xl leading-7 font-bold text-gray-900">Score progression</h2>
-      <p className="mt-1 text-sm text-gray-500">Your score across attempts.</p>
+      <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
 
       <div className="mt-4 overflow-x-auto">
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full" style={{ minWidth: 480 }}>
@@ -56,7 +60,7 @@ export function ScoreProgressionChartLayout({ attempts }: ScoreProgressionChartP
                 {attempt.score}
               </text>
               <text x={x} y={HEIGHT - 4} fontSize={10} fill="#9CA3AF" textAnchor="middle">
-                Attempt {attempt.attemptNumber}
+                {pointPrefix} {attempt.attemptNumber}
               </text>
             </g>
           ))}

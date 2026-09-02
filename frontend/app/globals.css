@@ -23,3 +23,42 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Entrance animation — applied to each screen's main content wrapper so the
+   page settles in instead of popping in instantly. Kept to opacity+translate
+   only (cheap, no layout thrash). */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.45s ease-out both;
+}
+
+/* Bar-chart fill — grows from 0 to its real width automatically on mount, no
+   JS needed. Set the target via the --bar-fill custom property. */
+@keyframes bar-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--bar-fill, 100%);
+  }
+}
+.animate-bar-fill {
+  animation: bar-fill 0.7s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-bar-fill {
+    animation: none;
+    width: var(--bar-fill, auto);
+  }
+}

@@ -13,8 +13,9 @@ export function MissionScoreGaugeLayout({
   score,
   maxScore,
   verdictLabel,
-}: MissionScoreGaugeProps) {
-  const ratio = Math.min(Math.max(score / maxScore, 0), 1);
+  animatedScore,
+}: MissionScoreGaugeProps & { animatedScore: number }) {
+  const ratio = Math.min(Math.max(animatedScore / maxScore, 0), 1);
   const filledLength = ARC_LENGTH * ratio;
 
   const arcPath = `M ${CENTER_X - RADIUS} ${CENTER_Y} A ${RADIUS} ${RADIUS} 0 0 1 ${CENTER_X + RADIUS} ${CENTER_Y}`;
@@ -54,8 +55,11 @@ export function MissionScoreGaugeLayout({
           strokeWidth={STROKE}
           strokeLinecap="butt"
           strokeDasharray={`${filledLength} ${ARC_LENGTH}`}
+          className="transition-[stroke-dasharray] duration-700 ease-out"
         />
         <text
+          data-testid="mission-score"
+          data-score={score}
           x={CENTER_X}
           y={CENTER_Y - 40}
           textAnchor="middle"

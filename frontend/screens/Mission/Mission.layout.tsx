@@ -15,6 +15,7 @@ export interface MissionLayoutProps {
   onSend: () => void;
   onSelectContact: (characterId: string) => void;
   isSending?: boolean;
+  submitError?: string | null;
 }
 
 export function MissionLayout({
@@ -23,11 +24,12 @@ export function MissionLayout({
   onSend,
   onSelectContact,
   isSending,
+  submitError,
 }: MissionLayoutProps) {
   return (
-    <div className="flex min-h-screen w-full bg-gray-50">
+    <div data-testid="mission-root" className="flex min-h-screen w-full bg-gray-50">
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="animate-fade-in-up flex-1 overflow-y-auto">
         {/* Header – Back button + TopBar, with correct top/left padding */}
         <div className="flex items-center justify-between px-6 pt-5 mb-6">
           <Link
@@ -61,7 +63,7 @@ export function MissionLayout({
                     <span className="inline-block rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-white">
                       {data.mission.category}
                     </span>
-                    <span className="ml-3 text-xl font-bold text-gray-900">
+                    <span data-testid="mission-title" className="ml-3 text-xl font-bold text-gray-900">
                       {data.mission.title}
                     </span>
                   </div>
@@ -96,6 +98,7 @@ export function MissionLayout({
                 dateLabel={data.dateLabel}
                 onSelectChoice={onSelectChoice}
                 onSend={onSend}
+                submitError={submitError}
               />
             </div>
           </div>

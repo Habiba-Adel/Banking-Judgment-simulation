@@ -158,7 +158,7 @@ export default function MissionReportPage() {
       </div>
 
       <div className="mt-6">
-        <LowerButtons onNext={() => router.push("/playthrough-history")} />
+        <LowerButtons onGoToHistory={() => router.push("/playthrough-history")} />
       </div>
     </div>
   );

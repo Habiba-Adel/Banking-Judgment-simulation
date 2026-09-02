@@ -4,6 +4,7 @@ export interface MissionProgressCardLayoutProps {
   totalSteps: number;
   playedLabel: string;
   thumbnailSrc: string;
+  onClick: () => void;
 }
 
 export function MissionProgressCardLayout({
@@ -12,11 +13,12 @@ export function MissionProgressCardLayout({
   totalSteps,
   playedLabel,
   thumbnailSrc,
+  onClick,
 }: MissionProgressCardLayoutProps) {
   const percent = Math.round((currentStep / totalSteps) * 100);
 
   return (
-    <div className="flex h-[320px] w-[224px] shrink-0 flex-col rounded-lg bg-[#FBFBFB] p-3 shadow-sm">
+    <div className="flex h-[320px] w-[224px] shrink-0 flex-col rounded-lg bg-[#FBFBFB] p-3 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={thumbnailSrc}
@@ -48,6 +50,8 @@ export function MissionProgressCardLayout({
         </div>
         <button
           type="button"
+          data-testid="continue-mission-card-button"
+          onClick={onClick}
           aria-label={`Continue ${title}`}
           className="flex h-[31px] w-[27.5px] items-center justify-center rounded border border-[#5570F1] bg-[#FBFBFB]"
         >

@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import { ArrowRight, FolderClosed } from "lucide-react";
+import Image from "next/image";
 import { MissionProgressCard } from "../MissionProgressCard";
 import type { MissionProgress } from "../../types";
 
@@ -9,6 +9,8 @@ export interface ContinuePanelLayoutProps {
   scrollRef: RefObject<HTMLDivElement | null>;
   onPrev: () => void;
   onNext: () => void;
+  onStartNew: () => void;
+  onMissionClick: (attemptId: string) => void;
 }
 
 export function ContinuePanelLayout({
@@ -17,6 +19,8 @@ export function ContinuePanelLayout({
   scrollRef,
   onPrev,
   onNext,
+  onStartNew,
+  onMissionClick,
 }: ContinuePanelLayoutProps) {
   return (
     <div className="rounded-lg bg-[#FBFBFB] p-5 shadow-sm">
@@ -24,20 +28,25 @@ export function ContinuePanelLayout({
 
       {!hasProgress || missions.length === 0 ? (
         <div className="mt-6 flex flex-col items-center text-center">
-          <div className="flex h-40 w-40 items-center justify-center rounded-full border border-gray-100">
-            <FolderClosed className="h-16 w-16 text-gray-300" />
-          </div>
+          <Image src="/folder-icon.png" alt="" width={160} height={160} className="h-40 w-40 object-contain" />
           <p className="mt-4 font-semibold text-gray-900">No Simulation History Yet</p>
           <p className="mt-1 text-sm text-gray-500">
             Once you start a simulation, your ongoing progress will appear here.
           </p>
           <button
             type="button"
+            onClick={onStartNew}
             className="mt-5 flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
           >
             Start New Simulation
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/20">
-              <ArrowRight className="h-3.5 w-3.5" />
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white">
+              <Image
+                src="/continue-arrow.png"
+                alt=""
+                width={38}
+                height={34}
+                className="object-contain"
+              />
             </span>
           </button>
         </div>
@@ -50,7 +59,7 @@ export function ContinuePanelLayout({
           >
             {missions.map((mission) => (
               <div key={mission.id} data-mission-card className="snap-start">
-                <MissionProgressCard {...mission} />
+                <MissionProgressCard {...mission} onClick={() => onMissionClick(mission.attemptId)} />
               </div>
             ))}
           </div>

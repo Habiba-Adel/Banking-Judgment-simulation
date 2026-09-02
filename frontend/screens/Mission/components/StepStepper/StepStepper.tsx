@@ -15,7 +15,13 @@ export function StepStepper({ steps }: StepStepperProps) {
       />
 
       {steps.map((step) => (
-        <div key={step.index} className="relative z-10 flex flex-1 flex-col items-center text-center">
+        <div
+          key={step.index}
+          data-testid="step-indicator"
+          data-step-index={step.index}
+          data-step-status={step.status}
+          className="relative z-10 flex flex-1 flex-col items-center text-center"
+        >
           <div
             className={[
               "flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold",

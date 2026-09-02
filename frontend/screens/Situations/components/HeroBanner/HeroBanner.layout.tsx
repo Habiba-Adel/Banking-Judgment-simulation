@@ -18,6 +18,7 @@ export function HeroBannerLayout({ onContinueMission, onSeePerformance }: HeroBa
       <div className="mt-6 flex flex-wrap gap-3">
         <button
           type="button"
+          data-testid="hero-continue-button"
           onClick={onContinueMission}
           className="flex items-center gap-2.5 rounded-xl bg-[#5570F1] px-5 py-3 text-lg leading-7 font-medium tracking-normal align-middle text-white hover:bg-[#4560e0]"
         >
@@ -28,8 +29,9 @@ export function HeroBannerLayout({ onContinueMission, onSeePerformance }: HeroBa
         </button>
         <button
           type="button"
+          data-testid="hero-performance-button"
           onClick={onSeePerformance}
-          className="rounded-xl border border-[#5570F1] px-5 py-3 text-lg leading-7 font-medium tracking-normal align-middle text-gray-700 hover:bg-gray-50"
+          className="rounded-xl border border-[#5570F1] px-5 py-3 text-lg leading-7 font-medium tracking-normal align-middle text-gray-700 transition-colors hover:bg-[#5570F1]/5"
         >
           See Your Performance
         </button>

@@ -28,3 +28,9 @@ export interface MissionAttemptHistoryData {
   decisions: DecisionRow[];
   metrics: MetricComparison[];
 }
+
+// Reuses the same shapes as the mission-attempt comparison above — a
+// "journey" (full playthrough) slots into AttemptOverview the same way a
+// mission attempt does, and each mission slots into DecisionRow the same way
+// a decision does, so the same comparison components render both.
+export type JourneyComparisonData = MissionAttemptHistoryData;

@@ -19,7 +19,12 @@ export function MissionCardLayout({
   const badge = STATUS_BADGE[status];
 
   return (
-    <div className="flex w-[380px] shrink-0 flex-col rounded-xl border border-gray-100 bg-[#FBFBFB] p-3 shadow-sm">
+    <div
+      data-testid="mission-card"
+      data-mission-title={title}
+      data-mission-status={status}
+      className="flex w-[380px] shrink-0 flex-col rounded-xl border border-gray-100 bg-[#FBFBFB] p-3 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md"
+    >
       <div className="relative h-[130px] w-full shrink-0 overflow-hidden rounded-lg">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={thumbnailSrc} alt={title} className="h-full w-full object-cover" />
@@ -52,6 +57,7 @@ export function MissionCardLayout({
             </div>
             <button
               type="button"
+              data-testid="mission-continue-button"
               onClick={() => onContinue?.(id)}
               className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-lg bg-[#5570F1] py-2.5 text-sm font-semibold text-white hover:bg-[#4560e0]"
             >
@@ -70,6 +76,7 @@ export function MissionCardLayout({
             {status === "not_started" ? (
               <button
                 type="button"
+                data-testid="mission-start-button"
                 onClick={() => onStart?.(id)}
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-[#5570F1] py-2.5 text-sm font-semibold text-[#5570F1] hover:bg-[#5570F1]/5"
               >
@@ -82,6 +89,7 @@ export function MissionCardLayout({
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
+                  data-testid="mission-replay-button"
                   onClick={() => onReplay?.(id)}
                   className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#5570F1] py-2.5 text-sm font-semibold text-[#5570F1] hover:bg-[#5570F1]/5"
                 >
@@ -92,6 +100,7 @@ export function MissionCardLayout({
                 </button>
                 <button
                   type="button"
+                  data-testid="mission-report-button"
                   onClick={() => onReport?.(id)}
                   className="flex-1 rounded-lg border border-[#5570F1] py-2.5 text-sm font-semibold text-[#5570F1] hover:bg-[#5570F1]/5"
                 >

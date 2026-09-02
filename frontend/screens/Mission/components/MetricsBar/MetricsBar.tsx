@@ -2,7 +2,7 @@ import Image from "next/image";
 import { TrendingUp } from "lucide-react";
 import type { MissionMetric, MissionMetricKey } from "../../types";
 
-const ICON_SRCS: Partial<Record<MissionMetricKey, string>> = {
+const ICON_SRCS: Record<MissionMetricKey, string> = {
   compliance: "/icon-compliance.png",
   reputationRisk: "/icon-reputation-risk.png",
   responsibleBanking: "/icon-decision-quality.png",

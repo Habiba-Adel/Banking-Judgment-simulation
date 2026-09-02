@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { MetricProgressListProps } from "./MetricProgressList";
 
 const EARLY_RUN_COLORS = ["#D2D6DB", "#9CA3AF", "#6C737F"];
@@ -80,8 +81,8 @@ export function MetricProgressListLayout({ metrics }: MetricProgressListProps) {
                       </span>
                       <div className="relative h-2 flex-1 rounded-full bg-gray-100">
                         <div
-                          className="absolute top-0 h-2 rounded-full"
-                          style={{ width: `${value}%`, backgroundColor: barColor }}
+                          className="animate-bar-fill absolute top-0 h-2 rounded-full"
+                          style={{ "--bar-fill": `${value}%`, backgroundColor: barColor } as CSSProperties}
                         />
                       </div>
                       <span

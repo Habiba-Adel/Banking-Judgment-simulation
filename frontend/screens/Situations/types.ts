@@ -14,6 +14,8 @@ export interface MissionCardData {
   currentStep?: number;
   /** in_progress only */
   playedLabel?: string;
+  /** in_progress or completed */
+  attemptId?: string;
 }
 
 export interface MissionCategoryData {

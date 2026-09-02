@@ -60,12 +60,17 @@ export class PlaythroughsRepository {
 
     const attemptRows = await this.db
       .select({
+        id: missionAttempts.id,
         missionId: missionAttempts.missionId,
         status: missionAttempts.status,
         missionScore: missionAttempts.missionScore,
+        finalMetrics: missionAttempts.finalMetrics,
+        startedAt: missionAttempts.startedAt,
+        completedAt: missionAttempts.completedAt,
       })
       .from(missionAttempts)
-      .where(eq(missionAttempts.playthroughId, playthroughId));
+      .where(eq(missionAttempts.playthroughId, playthroughId))
+      .orderBy(asc(missionAttempts.startedAt));
 
     return { playthrough, attemptRows };
   }
@@ -142,7 +147,13 @@ export class PlaythroughsRepository {
       .orderBy(asc(missions.orderIndex));
 
     
-      //and also get all attempts to know which missions is done 
+      //and also get all attempts to know which missions is done
+    // Ordered newest-first so .find() below picks the actual most recent
+    // attempt per mission — a mission can be replayed many times, and without
+    // this ordering "lastAttemptId" was picking an arbitrary DB-scan-order
+    // attempt instead of the last one (real bug, found 2026-09-01: a stale
+    // attempt from hours earlier was returned instead of the just-completed
+    // one, showing an old score on the report).
     const attempts = await this.db
       .select({
         id: missionAttempts.id,
@@ -150,12 +161,13 @@ export class PlaythroughsRepository {
         status: missionAttempts.status,
       })
       .from(missionAttempts)
-      .where(eq(missionAttempts.playthroughId, playthroughId));
+      .where(eq(missionAttempts.playthroughId, playthroughId))
+      .orderBy(desc(missionAttempts.startedAt));
 
     const progress = allMissions.map((mission) => {
-      //if there is aatleast one attempt for this mission that means it is done 
+      //if there is aatleast one attempt for this mission that means it is done
       const attempt = attempts.find((a) => a.missionId === mission.missionId);
-      
+
       return {
         missionId: mission.missionId,
         orderIndex: mission.orderIndex,

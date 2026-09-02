@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { toFriendlyErrorMessage } from "@/lib/friendlyError";
 import { MissionLayout } from "./Mission.layout";
+import { fetchMissionDetail, fetchCurrentStep as apiFetchCurrentStep, submitDecision as apiSubmitDecision } from "./api";
 import type { MissionData } from "./types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
 // Map character IDs to actual avatar file paths
 const AVATAR_MAP: Record<string, string> = {
@@ -14,26 +14,20 @@ const AVATAR_MAP: Record<string, string> = {
   "dina-adel": "/avatars/dina.png",
 };
 
-const INITIAL_DATA: MissionData = {
-  mission: {
-    category: "Ethics & Data",
-    title: "The Screenshot Shortcut",
-    description: "Customer has an account, card, mobile banking, or digital service issue, and a colleague asks for customer screenshots via an informal channel to resolve it quickly.",
-    goalText: "Resolve the request while protecting customer data and using approved channels.",
-  },
+// Placeholder step labels — the real stageLabel from the backend drives the
+// active step's contents; these generic labels are only shown for steps the
+// player hasn't reached yet, since we don't fetch every step's content upfront.
+const STEP_LABELS = ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"];
+
+const EMPTY_DATA: MissionData = {
+  mission: { category: "", title: "", description: "", goalText: "" },
   pressure: { level: "Low", time: "Low", expectation: "Low" },
   metrics: [
     { id: "compliance", label: "Compliance", value: 0, changeLabel: "" },
     { id: "reputationRisk", label: "Reputation Risk", value: 0, changeLabel: "" },
     { id: "responsibleBanking", label: "Responsible Banking", value: 0, changeLabel: "" },
   ],
-  steps: [
-    { index: 1, label: "The request", status: "upcoming" },
-    { index: 2, label: "Customer pressure", status: "upcoming" },
-    { index: 3, label: "The workaround", status: "upcoming" },
-    { index: 4, label: "Authority pressure", status: "upcoming" },
-    { index: 5, label: "Final resolution", status: "upcoming" },
-  ],
+  steps: STEP_LABELS.map((label, i) => ({ index: i + 1, label, status: "upcoming" as const })),
   contacts: [],
   activeCharacter: null,
   messages: [],
@@ -46,12 +40,27 @@ export interface MissionProps {
   attemptId: string;
 }
 
+const RUNNING_METRIC_KEYS: Record<"compliance" | "reputationRisk" | "responsibleBanking", string> = {
+  compliance: "complianceSafety",
+  reputationRisk: "reputationRisk",
+  responsibleBanking: "responsibleBanking",
+};
+
 export function Mission({ attemptId }: MissionProps) {
   const router = useRouter();
-  const [data, setData] = useState<MissionData>(INITIAL_DATA);
+  const [data, setData] = useState<MissionData>(EMPTY_DATA);
   const [currentStepData, setCurrentStepData] = useState<any>(null);
   const [answeredDecisionIds, setAnsweredDecisionIds] = useState<Set<string>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const loadedMissionId = useRef<string | null>(null);
+  // fetchCurrentStep() is called from two places (mount, and after every
+  // successful submit) with no cancellation — an older call can resolve
+  // AFTER a newer one and silently overwrite it with stale step data (real
+  // bug found 2026-09-01: submit decision 1 fast enough, and the slow
+  // initial-mount fetch can land after the post-submit fetch and revert the
+  // UI back to decision 1). This ref tracks which call is the latest one
+  // fired; a response only gets applied if it's still that latest call.
+  const latestStepRequestId = useRef(0);
 
   useEffect(() => {
     audioRef.current = new Audio('/notification.mp3');
@@ -59,20 +68,50 @@ export function Mission({ attemptId }: MissionProps) {
 
   const fetchCurrentStep = useCallback(async () => {
     if (!attemptId) return;
+    const requestId = ++latestStepRequestId.current;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/attempts/${attemptId}/current-step`);
-      if (!res.ok) throw new Error("Failed to fetch step data");
+      const result = await apiFetchCurrentStep(attemptId);
 
-      const result = await res.json();
+      // A newer fetchCurrentStep() call has been fired since this one
+      // started — its eventual response would be stale, so drop this one.
+      if (requestId !== latestStepRequestId.current) return;
 
       if (result.isComplete) {
         router.push(`/attempts/${attemptId}/report`);
         return;
       }
 
-      const { step, metrics, pressure } = result;
+      const { step, runningMetrics, pressure } = result;
+      if (!step) return;
       setCurrentStepData(step);
+
+      if (loadedMissionId.current !== step.missionId) {
+        loadedMissionId.current = step.missionId;
+        fetchMissionDetail(step.missionId)
+          .then((mission) => {
+            const stepLabels = [...mission.steps]
+              .sort((a, b) => a.orderIndex - b.orderIndex)
+              .map((s) => s.stageLabel);
+
+            setData((prev) => ({
+              ...prev,
+              mission: {
+                category: mission.category,
+                title: mission.title,
+                description: mission.description,
+                goalText: mission.goalText,
+              },
+              steps: prev.steps.map((s, i) => ({ ...s, label: stepLabels[i] ?? s.label })),
+            }));
+          })
+          .catch((err) => console.warn("Error loading mission detail:", err));
+      }
+
+      const metrics = EMPTY_DATA.metrics.map((m) => ({
+        ...m,
+        value: runningMetrics[RUNNING_METRIC_KEYS[m.id]] ?? 0,
+      }));
 
       // Play sound immediately
       if (audioRef.current) {
@@ -121,21 +160,45 @@ export function Mission({ attemptId }: MissionProps) {
         }));
 
         const updatedSteps = prev.steps.map((s) => {
-          if (s.index < step.orderIndex) return { ...s, status: "done" };
-          if (s.index === step.orderIndex) return { ...s, status: "current" };
-          return { ...s, status: "upcoming" };
+          const status: "done" | "current" | "upcoming" =
+            s.index < step.orderIndex ? "done" : s.index === step.orderIndex ? "current" : "upcoming";
+          return { ...s, status };
         });
+
+        // The open chat panel's choices must always belong to the step we're
+        // about to submit against (currentStepData, set above). Once a new
+        // step arrives, any previously-rendered choice buttons are for an
+        // already-answered decision — clearing them here prevents clicking a
+        // stale choice and submitting it against the new step's id (the
+        // backend correctly 400s that mismatch as "Invalid choice for this
+        // decision", but the UI shouldn't let it happen in the first place).
+        // If the same character voices two consecutive steps, refresh the
+        // panel with the new step's own messages/choices instead of just
+        // clearing it, since a contact click won't happen to trigger that.
+        const reopenActiveChat = prev.activeCharacter?.id === characterId;
 
         return {
           ...prev,
           contacts: updatedContacts,
           steps: updatedSteps,
-          metrics: metrics || prev.metrics,
-          pressure: pressure || prev.pressure,
+          metrics,
+          pressure,
+          choices: reopenActiveChat ? step.choices : [],
+          selectedChoiceId: null,
+          ...(reopenActiveChat && {
+            messages: step.characters.map((c: any, idx: number) => ({
+              id: `msg-${step.id}-${idx}`,
+              characterId,
+              text: c.message,
+              timestamp: timeString,
+            })),
+          }),
         };
       });
     } catch (error) {
-      console.error("Error loading current step:", error);
+      if (requestId !== latestStepRequestId.current) return;
+      console.warn("Error loading current step:", error);
+      setSubmitError(toFriendlyErrorMessage(error, "Couldn't load this step. Please refresh and try again."));
     }
   }, [attemptId, router]);
 
@@ -206,47 +269,28 @@ export function Mission({ attemptId }: MissionProps) {
   }
 
 const [isSending, setIsSending] = useState(false);
+const [submitError, setSubmitError] = useState<string | null>(null);
 
 async function handleSend() {
   if (!data.selectedChoiceId || !currentStepData || isSending) return;
+  setSubmitError(null);
+
+  // Defensive guard: the selected choice must actually belong to the step
+  // we're about to submit against. A selection can go stale if the current
+  // step advanced between the choice click and Send (e.g. two consecutive
+  // steps voiced by the same character) — re-sync instead of submitting a
+  // mismatched pair, which the backend would otherwise reject outright.
+  const choiceBelongsToCurrentStep = currentStepData.choices.some(
+    (c: any) => c.id === data.selectedChoiceId
+  );
+  if (!choiceBelongsToCurrentStep) {
+    setData((prev) => ({ ...prev, selectedChoiceId: null, choices: currentStepData.choices }));
+    return;
+  }
 
   setIsSending(true);
   try {
-    const url = `${API_BASE_URL}/attempts/${attemptId}/decisions`;
-    const payload = {
-      decisionId: currentStepData.id,
-      choiceId: data.selectedChoiceId,
-    };
-
-    console.log("📤 Sending:", payload);
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const responseText = await res.text();
-    console.log("📥 Status:", res.status, "Body:", responseText);
-
-    if (!res.ok) {
-      let errorMessage = `Server responded with ${res.status}`;
-      try {
-        const errorData = JSON.parse(responseText);
-        if (res.status === 400 && errorData.message === "Attempt is already completed") {
-          // Mission already complete → go to report
-          router.push(`/attempts/${attemptId}/report`);
-          return;
-        }
-        errorMessage = errorData.message || errorMessage;
-      } catch (_) {
-        
-      }
-      throw new Error(`${errorMessage} (${res.status})`);
-    }
-
-    const result = JSON.parse(responseText);
-    const { isMissionComplete } = result;
+    const { isMissionComplete } = await apiSubmitDecision(attemptId, currentStepData.id, data.selectedChoiceId);
 
     // Mark as answered
     setAnsweredDecisionIds((prev) => new Set(prev).add(currentStepData.id));
@@ -259,7 +303,15 @@ async function handleSend() {
       fetchCurrentStep();
     }
   } catch (error) {
-    console.error("❌ Error submitting decision:", error);
+    if (error instanceof Error && error.message === "Attempt is already completed") {
+      router.push(`/attempts/${attemptId}/report`);
+      return;
+    }
+    // console.warn, not console.error — Next's dev overlay auto-triggers on
+    // any console.error(Error), even ones already caught and handled here.
+    // The friendly message above is the real user-facing feedback.
+    console.warn("Error submitting decision:", error);
+    setSubmitError(toFriendlyErrorMessage(error, "Couldn't submit your answer. Please try again."));
   } finally {
     setIsSending(false);
   }
@@ -270,8 +322,9 @@ async function handleSend() {
       data={data} 
       onSelectChoice={handleSelectChoice} 
       onSend={handleSend} 
-      onSelectContact={handleSelectContact} 
-      isSending={isSending} 
+      onSelectContact={handleSelectContact}
+      isSending={isSending}
+      submitError={submitError}
     />
   );
 }

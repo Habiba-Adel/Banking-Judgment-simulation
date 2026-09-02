@@ -3,6 +3,9 @@ import type { AttemptOverview } from "../../types";
 
 export interface AttemptsOverviewTableProps {
   attempts: AttemptOverview[];
+  title?: string;
+  noun?: string;
+  numberColumnLabel?: string;
 }
 
 export function AttemptsOverviewTable(props: AttemptsOverviewTableProps) {

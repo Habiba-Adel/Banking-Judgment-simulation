@@ -1,59 +1,162 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { toFriendlyErrorMessage } from "@/lib/friendlyError";
 import { DashboardLayout } from "./Dashboard.layout";
-import type { DashboardData } from "./types";
+import {
+  startOrResumePlaythrough,
+  fetchUser,
+  fetchPlaythroughProgress,
+  fetchCurrentStep,
+  fetchPlaythroughDetail,
+  fetchMissions,
+  startOrResumeAttempt,
+  type MissionAttemptSummary,
+} from "./api";
+import type { DashboardData, MetricIconKey, MissionProgress } from "./types";
 
-const EMPTY_STATE_DATA: DashboardData = {
-  userName: "Alyan",
-  hasProgress: false,
-  profile: { score: null, maxScore: 100, profileLabel: null },
-  metrics: [
-    { id: "compliance", icon: "compliance", label: "Compliance", value: null, comparisonLabel: "No Data Yet" },
-    { id: "reputationRisk", icon: "reputationRisk", label: "Reputation Risk", value: null, comparisonLabel: "No Data Yet" },
-    { id: "customerTrust", icon: "customerTrust", label: "Customer Trust", value: null, comparisonLabel: "No Data Yet" },
-    { id: "dataProtection", icon: "dataProtection", label: "Data Protection", value: null, comparisonLabel: "No Data Yet" },
-    { id: "accountability", icon: "accountability", label: "Accountability", value: null, comparisonLabel: "No Data Yet" },
-    { id: "decisionQuality", icon: "decisionQuality", label: "Decision Quality", value: null, comparisonLabel: "No Data Yet" },
-  ],
-  missions: [],
+const METRIC_LABELS: Record<MetricIconKey, string> = {
+  complianceSafety: "Compliance",
+  reputationRisk: "Reputation Risk",
+  customerTrust: "Customer Trust",
+  dataProtection: "Data Protection",
+  accountability: "Accountability",
+  decisionQuality: "Decision Quality",
 };
 
-const CONTINUE_STATE_DATA: DashboardData = {
-  userName: "Alyan",
-  hasProgress: true,
-  profile: { score: 78, maxScore: 100, profileLabel: "Risk Spotter" },
-  metrics: [
-    { id: "compliance", icon: "compliance", label: "Compliance", value: 82, comparisonLabel: "vs last 7 days" },
-    { id: "reputationRisk", icon: "reputationRisk", label: "Reputation Risk", value: 50, comparisonLabel: "vs last 9 days" },
-    { id: "customerTrust", icon: "customerTrust", label: "Customer Trust", value: 50, comparisonLabel: "vs last 9 days" },
-    { id: "dataProtection", icon: "dataProtection", label: "Data Protection", value: 26, comparisonLabel: "vs last 9 days" },
-    { id: "accountability", icon: "accountability", label: "Accountability", value: 26, comparisonLabel: "vs last 9 days" },
-    { id: "decisionQuality", icon: "decisionQuality", label: "Decision Quality", value: 26, comparisonLabel: "vs last 9 days" },
-  ],
-  missions: [
-    {
-      id: "vip-friend-request",
-      title: "The VIP Friend Request",
-      currentStep: 3,
-      totalSteps: 5,
-      playedLabel: "2 days ago",
-      thumbnailSrc: "/mission-thumb-vip-friend-request.svg",
-    },
-    {
-      id: "screenshot-shortcut",
-      title: "The Screenshot Shortcut",
-      currentStep: 2,
-      totalSteps: 5,
-      playedLabel: "3 days ago",
-      thumbnailSrc: "/mission-thumb-screenshot-shortcut.svg",
-    },
-  ],
-};
+function computeProfileAndMetrics(missionAttempts: MissionAttemptSummary[]) {
+  const completed = missionAttempts.filter((a) => a.status === "completed");
 
-// Toggle this to preview the empty vs. in-progress dashboard state until it's
-// driven by GET /playthroughs/:id/progress.
-const MOCK_HAS_PROGRESS = true;
+  if (completed.length === 0) {
+    return {
+      profile: { score: null, maxScore: 100, profileLabel: null },
+      metrics: (Object.keys(METRIC_LABELS) as MetricIconKey[]).map((key) => ({
+        id: key,
+        icon: key,
+        label: METRIC_LABELS[key],
+        value: null,
+        comparisonLabel: "No Data Yet",
+      })),
+    };
+  }
+
+  const avgScore = Math.round(
+    completed.reduce((sum, a) => sum + (a.missionScore ?? 0), 0) / completed.length,
+  );
+
+  const metrics = (Object.keys(METRIC_LABELS) as MetricIconKey[]).map((key) => {
+    const withMetric = completed.filter((a) => a.finalMetrics?.[key] !== undefined);
+    const value = withMetric.length
+      ? Math.round(
+          withMetric.reduce((sum, a) => sum + (a.finalMetrics![key] ?? 0), 0) / withMetric.length,
+        )
+      : null;
+
+    return {
+      id: key,
+      icon: key,
+      label: METRIC_LABELS[key],
+      value,
+      comparisonLabel: value === null ? "No Data Yet" : `across ${withMetric.length} mission(s)`,
+    };
+  });
+
+  return {
+    profile: { score: avgScore, maxScore: 100, profileLabel: null },
+    metrics,
+  };
+}
+
+// No per-mission thumbnail exists for most missions yet — fallback until real assets/mapping land.
+const FALLBACK_THUMBNAIL = "/mission-thumb-vip-friend-request.svg";
 
 export function Dashboard() {
-  const data = MOCK_HAS_PROGRESS ? CONTINUE_STATE_DATA : EMPTY_STATE_DATA;
+  const router = useRouter();
+  const [playthroughId, setPlaythroughId] = useState<string | null>(null);
+  const [firstMissionId, setFirstMissionId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [missions, setMissions] = useState<MissionProgress[] | null>(null);
+  const [hasProgress, setHasProgress] = useState(false);
+  const [profileAndMetrics, setProfileAndMetrics] = useState<ReturnType<
+    typeof computeProfileAndMetrics
+  > | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  return <DashboardLayout data={data} />;
+  useEffect(() => {
+    startOrResumePlaythrough()
+      .then(async (playthrough) => {
+        setPlaythroughId(playthrough.id);
+
+        const [user, progress, detail, allMissions] = await Promise.all([
+          fetchUser(playthrough.userId),
+          fetchPlaythroughProgress(playthrough.id),
+          fetchPlaythroughDetail(playthrough.id),
+          fetchMissions(),
+        ]);
+        setUserName(user.displayName ?? user.email);
+        setProfileAndMetrics(computeProfileAndMetrics(detail.missionAttempts));
+        setFirstMissionId(allMissions.find((m) => m.orderIndex === 1)?.id ?? null);
+
+        const inProgress = progress.filter((m) => !m.completed && m.lastAttemptId);
+        setHasProgress(progress.some((m) => m.lastAttemptId !== null));
+
+        const missionCards = await Promise.all(
+          inProgress.map(async (m) => {
+            const step = await fetchCurrentStep(m.lastAttemptId!);
+            return {
+              id: m.missionId,
+              attemptId: m.lastAttemptId!,
+              title: m.title,
+              currentStep: step.currentStep,
+              totalSteps: step.totalSteps,
+              playedLabel: "In progress",
+              thumbnailSrc: FALLBACK_THUMBNAIL,
+            };
+          }),
+        );
+        setMissions(missionCards);
+      })
+      .catch((err) => setError(toFriendlyErrorMessage(err, "Failed to load dashboard")));
+  }, []);
+
+  const goToAttempt = (attemptId: string) => router.push(`/mission/${attemptId}`);
+
+  const handlePrimaryAction = async () => {
+    if (missions && missions.length > 0) {
+      goToAttempt(missions[0].attemptId);
+      return;
+    }
+    if (!playthroughId || !firstMissionId) return;
+    const attempt = await startOrResumeAttempt(playthroughId, firstMissionId);
+    goToAttempt(attempt.attemptId);
+  };
+
+  const handleReadInstructions = () => router.push("/instructions");
+
+  if (error) {
+    return <div className="p-8 text-sm text-red-600">{error}</div>;
+  }
+
+  if (!userName || !missions || !profileAndMetrics) {
+    return <LoadingSpinner />;
+  }
+
+  const data: DashboardData = {
+    userName,
+    hasProgress,
+    profile: profileAndMetrics.profile,
+    metrics: profileAndMetrics.metrics,
+    missions,
+  };
+
+  return (
+    <DashboardLayout
+      data={data}
+      onPrimaryAction={handlePrimaryAction}
+      onReadInstructions={handleReadInstructions}
+      onMissionClick={goToAttempt}
+    />
+  );
 }

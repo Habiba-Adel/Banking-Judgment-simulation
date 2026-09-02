@@ -7,9 +7,11 @@ import type { MissionProgress } from "../../types";
 export interface ContinuePanelProps {
   hasProgress: boolean;
   missions: MissionProgress[];
+  onStartNew: () => void;
+  onMissionClick: (attemptId: string) => void;
 }
 
-export function ContinuePanel({ hasProgress, missions }: ContinuePanelProps) {
+export function ContinuePanel({ hasProgress, missions, onStartNew, onMissionClick }: ContinuePanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollByCard = (direction: 1 | -1) => {
@@ -28,6 +30,8 @@ export function ContinuePanel({ hasProgress, missions }: ContinuePanelProps) {
       scrollRef={scrollRef}
       onPrev={() => scrollByCard(-1)}
       onNext={() => scrollByCard(1)}
+      onStartNew={onStartNew}
+      onMissionClick={onMissionClick}
     />
   );
 }

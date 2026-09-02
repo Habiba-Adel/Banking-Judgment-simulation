@@ -168,7 +168,7 @@ export function AverageScoreCard({ averageScore, metrics }: AverageScoreCardProp
 
         {/* shifted down with the taller card */}
         <div className="absolute left-1/2 top-[200px] w-[135px] -translate-x-1/2 text-center">
-          <span className="text-[36px] font-medium leading-[44px] tracking-[-0.02em] text-white">
+          <span className="whitespace-nowrap text-[36px] font-medium leading-[44px] tracking-[-0.02em] text-white">
             {averageScore} / 100
           </span>
         </div>

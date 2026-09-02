@@ -22,11 +22,17 @@ function SortIcon() {
   );
 }
 
-export function DecisionByAttemptTableLayout({ attempts, decisions }: DecisionByAttemptTableProps) {
+export function DecisionByAttemptTableLayout({
+  attempts,
+  decisions,
+  title = "Decision by decision",
+  rowHeader = "Decision",
+  columnPrefix = "Attempt",
+}: DecisionByAttemptTableProps) {
   return (
-    <section className="rounded-xl border border-gray-100 bg-[#FBFBFB] p-6">
+    <section data-testid="decision-comparison-table" className="rounded-xl border border-gray-100 bg-[#FBFBFB] p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl leading-7 font-bold text-gray-900">Decision by decision</h2>
+        <h2 className="text-xl leading-7 font-bold text-gray-900">{title}</h2>
       </div>
 
       <div className="mt-6 overflow-x-auto">
@@ -35,14 +41,14 @@ export function DecisionByAttemptTableLayout({ attempts, decisions }: DecisionBy
             <tr className="border-b border-gray-100">
               <th className="sticky left-0 bg-[#FBFBFB] pb-3 pr-4 font-normal text-gray-500">
                 <span className="flex items-center gap-1.5">
-                  Decision
+                  {rowHeader}
                   <SortIcon />
                 </span>
               </th>
               {attempts.map((attempt) => (
                 <th key={attempt.attemptNumber} className="pb-3 pr-4 text-center font-normal text-gray-500">
                   <span className="flex items-center justify-center gap-1.5">
-                    Attempt {attempt.attemptNumber}
+                    {columnPrefix} {attempt.attemptNumber}
                     <SortIcon />
                   </span>
                 </th>

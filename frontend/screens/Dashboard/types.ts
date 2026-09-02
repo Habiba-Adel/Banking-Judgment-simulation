@@ -1,5 +1,5 @@
 export type MetricIconKey =
-  | "compliance"
+  | "complianceSafety"
   | "reputationRisk"
   | "customerTrust"
   | "dataProtection"
@@ -16,6 +16,7 @@ export interface MetricData {
 
 export interface MissionProgress {
   id: string;
+  attemptId: string;
   title: string;
   currentStep: number;
   totalSteps: number;

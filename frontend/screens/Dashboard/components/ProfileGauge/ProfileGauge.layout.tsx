@@ -4,6 +4,7 @@ export interface ProfileGaugeLayoutProps {
   score: number | null;
   maxScore: number;
   profileLabel: string | null;
+  animatedScore: number;
 }
 
 const SIZE_W = 310;
@@ -15,8 +16,8 @@ const CENTER_X = 155;
 const CENTER_Y = 187;
 const ARC_LENGTH = Math.PI * RADIUS;
 
-export function ProfileGaugeLayout({ score, maxScore, profileLabel }: ProfileGaugeLayoutProps) {
-  const ratio = score === null ? 0 : Math.min(Math.max(score / maxScore, 0), 1);
+export function ProfileGaugeLayout({ score, maxScore, profileLabel, animatedScore }: ProfileGaugeLayoutProps) {
+  const ratio = score === null ? 0 : Math.min(Math.max(animatedScore / maxScore, 0), 1);
   const filledLength = ARC_LENGTH * ratio;
 
   const arcPath = `M ${CENTER_X - RADIUS} ${CENTER_Y} A ${RADIUS} ${RADIUS} 0 0 1 ${CENTER_X + RADIUS} ${CENTER_Y}`;
@@ -54,6 +55,7 @@ export function ProfileGaugeLayout({ score, maxScore, profileLabel }: ProfileGau
             strokeWidth={STROKE}
             strokeLinecap="butt"
             strokeDasharray={`${filledLength} ${ARC_LENGTH}`}
+            className="transition-[stroke-dasharray] duration-700 ease-out"
           />
         )}
         <text

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { LandedCardProps, LandedMetricColor } from "./LandedCard";
 
 const COLOR_HEX: Record<LandedMetricColor, string> = {
@@ -26,8 +27,8 @@ export function LandedCardLayout({ items }: LandedCardProps) {
                 style={{ backgroundColor: `${hex}1A` }}
               >
                 <span
-                  className="block h-3 rounded-full"
-                  style={{ width: `${ratio}%`, backgroundColor: hex }}
+                  className="animate-bar-fill block h-3 rounded-full"
+                  style={{ "--bar-fill": `${ratio}%`, backgroundColor: hex } as CSSProperties}
                 />
               </span>
               <span className="w-6 shrink-0 text-right text-sm text-[#1C1C1C]">

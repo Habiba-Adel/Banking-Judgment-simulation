@@ -1,7 +1,7 @@
 import { MissionProgressCardLayout } from "./MissionProgressCard.layout";
 import type { MissionProgress } from "../../types";
 
-export type MissionProgressCardProps = MissionProgress;
+export type MissionProgressCardProps = MissionProgress & { onClick: () => void };
 
 export function MissionProgressCard({
   title,
@@ -9,6 +9,7 @@ export function MissionProgressCard({
   totalSteps,
   playedLabel,
   thumbnailSrc,
+  onClick,
 }: MissionProgressCardProps) {
   return (
     <MissionProgressCardLayout
@@ -17,6 +18,7 @@ export function MissionProgressCard({
       totalSteps={totalSteps}
       playedLabel={playedLabel}
       thumbnailSrc={thumbnailSrc}
+      onClick={onClick}
     />
   );
 }

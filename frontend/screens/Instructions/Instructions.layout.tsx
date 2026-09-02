@@ -9,6 +9,7 @@ export interface InstructionsLayoutProps {
   cast: CastMember[];
   loading: boolean;
   error: string | null;
+  onStartNewSimulation?: () => void;
 }
 
 function CastAvatar({ name, avatarSrc, isPlayer }: { name: string; avatarSrc?: string; isPlayer?: boolean }) {
@@ -39,14 +40,15 @@ export function InstructionsLayout({
   cast,
   loading,
   error,
+  onStartNewSimulation,
 }: InstructionsLayoutProps) {
   return (
     <div className="flex min-h-screen w-full bg-[#FBFBFB]">
 
       <div className="flex-1">
-        <TopBar showNotifications={false} />
+        <TopBar />
 
-        <div className="flex w-full flex-col gap-[48px] px-8 py-6">
+        <div className="animate-fade-in-up flex w-full flex-col gap-[48px] px-8 py-6">
           {/* Card 1: How the simulation works */}
           <div className="flex min-h-[276px] w-full flex-col gap-[24px] rounded-2xl border border-[#FEF7EC] p-5 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
             <div className="flex min-h-[158px] w-full flex-col gap-[12px]">
@@ -65,6 +67,7 @@ export function InstructionsLayout({
             {/* BUTTON 1 (TOP) FIX */}
             <button
               type="button"
+              onClick={onStartNewSimulation}
               className="flex h-[52px] w-[238px] items-center justify-center gap-[10px] rounded-lg bg-primary px-[10px] transition-colors hover:bg-indigo-600"
             >
               <span className="whitespace-nowrap text-[18px] font-medium leading-[28px] text-white">
@@ -173,7 +176,8 @@ export function InstructionsLayout({
             </div>
             <button
               type="button"
-              className="flex h-[52px] w-[238px] flex-shrink-0 items-center justify-center gap-[10px] rounded-lg bg-[#FBFBFB] px-[10px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors hover:bg-gray-50"
+              onClick={onStartNewSimulation}
+              className="flex h-[52px] w-[238px] flex-shrink-0 items-center justify-center gap-[10px] rounded-lg bg-[#FBFBFB] px-[10px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors hover:bg-gray-100"
             >
               <span className="whitespace-nowrap text-[18px] font-medium leading-[28px] text-[#5871EC]">
                 Start New Simulation

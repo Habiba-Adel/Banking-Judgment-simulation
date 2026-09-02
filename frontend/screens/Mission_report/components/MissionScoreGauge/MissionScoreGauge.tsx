@@ -1,3 +1,4 @@
+import { useAnimatedNumber } from "@/lib/useAnimatedNumber";
 import { MissionScoreGaugeLayout } from "./MissionScoreGauge.layout";
 
 export interface MissionScoreGaugeProps {
@@ -7,5 +8,6 @@ export interface MissionScoreGaugeProps {
 }
 
 export function MissionScoreGauge(props: MissionScoreGaugeProps) {
-  return <MissionScoreGaugeLayout {...props} />;
+  const animatedScore = useAnimatedNumber(props.score);
+  return <MissionScoreGaugeLayout {...props} animatedScore={animatedScore} />;
 }

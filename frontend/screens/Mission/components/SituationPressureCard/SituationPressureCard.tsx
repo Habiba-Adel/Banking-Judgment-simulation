@@ -12,6 +12,7 @@ const LEVEL_COLOR: Record<SituationPressure["level"], string> = {
   Moderate: "text-[#B8E4B9]",
   "Medium-High": "text-[#FFBA6B]",
   High: "text-[#FC4D50]",
+  Critical: "text-[#FC4D50]",
 };
 
 const LEVEL_ROTATION: Record<SituationPressure["level"], number> = {
@@ -19,6 +20,7 @@ const LEVEL_ROTATION: Record<SituationPressure["level"], number> = {
   Moderate: -20,
   "Medium-High": 30,
   High: 70,
+  Critical: 90,
 };
 
 export function SituationPressureCard({ pressure, goalText }: SituationPressureCardProps) {

@@ -1,155 +1,151 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { toFriendlyErrorMessage } from "@/lib/friendlyError";
 import { SituationsLayout } from "./Situations.layout";
-import type { SituationsData, StatusFilter } from "./types";
+import {
+  startOrResumePlaythrough,
+  fetchMissions,
+  fetchPlaythroughProgress,
+  fetchCurrentStep,
+  startOrResumeAttempt,
+} from "./api";
+import type { MissionCardData, MissionCategoryData, StatusFilter } from "./types";
 
-const MOCK_DATA: SituationsData = {
-  categories: [
-    {
-      id: "data-confidentiality-digital-conduct",
-      title: "Data, Confidentiality & Digital Conduct",
-      missions: [
-        {
-          id: "screenshot-shortcut",
-          title: "The Screenshot Shortcut",
-          description: "Customer service speed vs. confidentiality and approved channels.",
-          status: "in_progress",
-          thumbnailSrc: "/mission-photo-2.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-          currentStep: 3,
-          playedLabel: "2 days ago",
-        },
-        {
-          id: "vip-friend-request",
-          title: "The VIP Friend Request",
-          description: "Personal influence vs. confidentiality and authorized access.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-4.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-        {
-          id: "vendor-access-request",
-          title: "The Vendor Access Request",
-          description: "Fixing an issue fast vs protecting production and customer data from third-party access.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-1.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-        {
-          id: "gift-hospitality-dilemma",
-          title: "The Gift & Hospitality Dilemma",
-          description: "Maintaining relationships vs avoiding conflicts of interest and perceived influence.",
-          status: "completed",
-          thumbnailSrc: "/mission-photo-3.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-      ],
-    },
-    {
-      id: "regulatory-compliance-risk-controls",
-      title: "Regulatory Compliance & Risk Controls",
-      missions: [
-        {
-          id: "suspicious-pattern",
-          title: "The Suspicious Pattern",
-          description: "The amounts are small, but the pattern may indicate unusual activity.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-2.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-        {
-          id: "kyc-almost-complete",
-          title: "KYC Almost Complete",
-          description: "Speed of onboarding vs completing required KYC/CDD verification.",
-          status: "completed",
-          thumbnailSrc: "/mission-photo-4.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-      ],
-    },
-    {
-      id: "customer-trust-fair-treatment",
-      title: "Customer Trust & Fair Treatment",
-      missions: [
-        {
-          id: "angry-customer-complaint",
-          title: "The Angry Customer Complaint",
-          description: "Bank reputation vs. formal complaint handling and customer confidentiality.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-1.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-        {
-          id: "sales-target-trap",
-          title: "The Sales Target Trap",
-          description: "Meeting sales targets vs recommending suitable products with clear disclosure.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-3.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-        {
-          id: "inclusive-digital-banking",
-          title: "Inclusive Digital Banking",
-          description: "Launch speed vs accessibility for elderly, disabled, and less digitally-literate customers.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-2.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-      ],
-    },
-    {
-      id: "responsible-banking-sustainability",
-      title: "Responsible Banking & Sustainability",
-      missions: [
-        {
-          id: "green-or-greenwashing",
-          title: "Green or Greenwashing?",
-          description: "Supporting business growth while verifying sustainability claims and avoiding misleading classifications.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-4.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-        {
-          id: "paperless-bank-paradox",
-          title: "The Paperless Bank Paradox",
-          description: "Convenient habits vs the bank's digital/paperless and data-minimisation commitments.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-1.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-        {
-          id: "supplier-choice",
-          title: "The Supplier Choice",
-          description: "Lowest cost vs data protection, compliance, and ESG/third-party risk.",
-          status: "not_started",
-          thumbnailSrc: "/mission-photo-3.jpg",
-          totalDecisions: 5,
-          estimatedMinutes: 10,
-        },
-      ],
-    },
-  ],
-};
+const TOTAL_DECISIONS = 5;
+const ESTIMATED_MINUTES = 10;
+const THUMBNAILS = ["/mission-photo-1.jpg", "/mission-photo-2.jpg", "/mission-photo-3.jpg", "/mission-photo-4.jpg"];
 
 export function Situations() {
+  const router = useRouter();
+  const [playthroughId, setPlaythroughId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<MissionCategoryData[] | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [error, setError] = useState<string | null>(null);
 
-  const categories =
+  useEffect(() => {
+    startOrResumePlaythrough()
+      .then(async (playthrough) => {
+        setPlaythroughId(playthrough.id);
+
+        const [missions, progress] = await Promise.all([
+          fetchMissions(),
+          fetchPlaythroughProgress(playthrough.id),
+        ]);
+
+        const progressByMissionId = new Map(progress.map((p) => [p.missionId, p]));
+
+        const cards: MissionCardData[] = await Promise.all(
+          missions.map(async (mission, index) => {
+            const progressEntry = progressByMissionId.get(mission.id);
+            const status: MissionCardData["status"] = progressEntry?.completed
+              ? "completed"
+              : progressEntry?.lastAttemptId
+                ? "in_progress"
+                : "not_started";
+
+            const base: MissionCardData = {
+              id: mission.id,
+              title: mission.title,
+              description: mission.description,
+              status,
+              thumbnailSrc: THUMBNAILS[index % THUMBNAILS.length],
+              totalDecisions: TOTAL_DECISIONS,
+              estimatedMinutes: ESTIMATED_MINUTES,
+            };
+
+            if (status === "in_progress" && progressEntry?.lastAttemptId) {
+              const step = await fetchCurrentStep(progressEntry.lastAttemptId);
+              return {
+                ...base,
+                currentStep: step.currentStep,
+                playedLabel: "In progress",
+                attemptId: progressEntry.lastAttemptId,
+              };
+            }
+
+            if (status === "completed" && progressEntry?.lastAttemptId) {
+              return { ...base, attemptId: progressEntry.lastAttemptId };
+            }
+
+            return base;
+          }),
+        );
+
+        const categoryMap = new Map<string, MissionCategoryData>();
+        for (const card of cards) {
+          const mission = missions.find((m) => m.id === card.id)!;
+          const existing = categoryMap.get(mission.category);
+          if (existing) {
+            existing.missions.push(card);
+          } else {
+            categoryMap.set(mission.category, {
+              id: mission.category,
+              title: mission.category,
+              missions: [card],
+            });
+          }
+        }
+
+        setCategories(Array.from(categoryMap.values()));
+      })
+      .catch((err) => setError(toFriendlyErrorMessage(err, "Failed to load missions")));
+  }, []);
+
+  const goToAttempt = (attemptId: string) => router.push(`/mission/${attemptId}`);
+
+  const handleStart = async (missionId: string) => {
+    if (!playthroughId) return;
+    const attempt = await startOrResumeAttempt(playthroughId, missionId);
+    goToAttempt(attempt.attemptId);
+  };
+
+  const handleContinue = (missionId: string) => {
+    const mission = categories?.flatMap((c) => c.missions).find((m) => m.id === missionId);
+    if (mission?.attemptId) goToAttempt(mission.attemptId);
+  };
+
+  const handleReplay = async (missionId: string) => {
+    if (!playthroughId) return;
+    const attempt = await startOrResumeAttempt(playthroughId, missionId);
+    goToAttempt(attempt.attemptId);
+  };
+
+  const handleReport = (missionId: string) => {
+    const mission = categories?.flatMap((c) => c.missions).find((m) => m.id === missionId);
+    if (mission?.attemptId) router.push(`/attempts/${mission.attemptId}/report`);
+  };
+
+  // Hero banner's "Continue Mission" has no specific mission in mind — resume
+  // whichever one is actually in progress, or start the first not-started one
+  // if nothing's in progress yet.
+  const handleContinueMission = async () => {
+    const allMissions = categories?.flatMap((c) => c.missions) ?? [];
+    const inProgress = allMissions.find((m) => m.status === "in_progress");
+    if (inProgress?.attemptId) {
+      goToAttempt(inProgress.attemptId);
+      return;
+    }
+    const notStarted = allMissions.find((m) => m.status === "not_started");
+    if (notStarted) await handleStart(notStarted.id);
+  };
+
+  const handleSeePerformance = () => router.push("/performance");
+
+  if (error) {
+    return <div className="p-8 text-sm text-red-600">{error}</div>;
+  }
+
+  if (!categories) {
+    return <LoadingSpinner />;
+  }
+
+  const filteredCategories =
     statusFilter === "all"
-      ? MOCK_DATA.categories
-      : MOCK_DATA.categories
+      ? categories
+      : categories
           .map((category) => ({
             ...category,
             missions: category.missions.filter((mission) => mission.status === statusFilter),
@@ -158,9 +154,15 @@ export function Situations() {
 
   return (
     <SituationsLayout
-      categories={categories}
+      categories={filteredCategories}
       statusFilter={statusFilter}
       onStatusFilterChange={setStatusFilter}
+      onStart={handleStart}
+      onContinue={handleContinue}
+      onReplay={handleReplay}
+      onReport={handleReport}
+      onContinueMission={handleContinueMission}
+      onSeePerformance={handleSeePerformance}
     />
   );
 }
