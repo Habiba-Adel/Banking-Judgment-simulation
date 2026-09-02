@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, Res } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Post, Res, Body } from '@nestjs/common';
 import type { Response } from 'express';
 import { PlaythroughsService } from './playthroughs.service';
 
@@ -38,5 +38,18 @@ export class PlaythroughsController {
   @Post(':playthroughId/reset')
   resetPlaythrough(@Param('playthroughId', ParseUUIDPipe) playthroughId: string) {
     return this.playthroughsService.resetPlaythrough(playthroughId);
+  }
+
+  @Get(':playthroughId/progress')
+  getPlaythroughProgress(@Param('playthroughId', ParseUUIDPipe) playthroughId: string) {
+    return this.playthroughsService.getPlaythroughProgress(playthroughId);
+  }
+
+  @Post(':playthroughId/missions/:missionId/attempts')
+  async startOrResumeAttempt(
+    @Param('playthroughId', ParseUUIDPipe) playthroughId: string,
+    @Param('missionId', ParseUUIDPipe) missionId: string,
+  ) {
+    return this.playthroughsService.startOrResumeAttempt(playthroughId, missionId);
   }
 }
