@@ -67,7 +67,7 @@ style={period === p ? { backgroundColor: "rgba(117, 137, 240, 1)" } : undefined}
               }}
               itemStyle={{ color: "#fff" }}
               labelStyle={{ display: "none" }}
-              formatter={(value: number) => [`${value} pts`, ""]}
+              formatter={(value) => [`${value} pts`, ""]}
             />
             <Area
               type="monotone"
